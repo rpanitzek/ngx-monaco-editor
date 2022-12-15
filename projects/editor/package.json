@@ -35,11 +35,11 @@
     "Atul Kumar <atulaggarwal4288@gmail.com>"
   ],
   "peerDependencies": {
-    "@angular/common": "^12.0.0",
-    "@angular/core": "^12.0.0",
+    "@angular/common": "^13.3.10",
+    "@angular/core": "^13.3.10",
     "monaco-editor": "0.33.0"
   },
   "dependencies": {
-    "tslib": "^2.1.0"
+    "tslib": "^2.4.1"
   }
 }
