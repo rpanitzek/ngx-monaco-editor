@@ -1,6 +1,6 @@
 {
   "name": "ngx-monaco-editor",
-  "version": "12.0.0",
+  "version": "15.0.0",
   "private": false,
   "description": "Monaco Code Editor for Angular",
   "keywords": [
@@ -35,8 +35,8 @@
     "Atul Kumar <atulaggarwal4288@gmail.com>"
   ],
   "peerDependencies": {
-    "@angular/common": "^13.3.10",
-    "@angular/core": "^13.3.10",
+    "@angular/common": "^14.2.12",
+    "@angular/core": "^14.2.12",
     "monaco-editor": "0.33.0"
   },
   "dependencies": {
