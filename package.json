@@ -1,14 +1,16 @@
 {
   "name": "ngx-monaco-editor-15",
-  "version": "15.0.0",
-  "description": "Monaco Code Editor For Angular",
+  "version": "15.0.1",
+  "description": "Monaco Code Editor For Angular 15",
   "keywords": [
-    "angular",
+    "angular 2+",
+    "angular 15",
     "monaco",
     "monaco-editor",
     "code",
     "editor",
-    "reusable"
+    "reusable",
+    "component"
   ],
   "license": "MIT",
   "scripts": {
@@ -26,14 +28,15 @@
   "private": false,
   "repository": {
     "type": "git",
-    "url": "https://github.com/atularen/ngx-monaco-editor.git"
+    "url": "https://github.com/rpanitzek/ngx-monaco-editor"
   },
   "bugs": {
-    "url": "https://github.com/atularen/ngx-monaco-editor/issues"
+    "url": "https://github.com/rpanitzek/ngx-monaco-editor/issues"
   },
   "author": "Atul Kumar",
   "contributors": [
-    "Atul Kumar <atulaggarwal4288@gmail.com>"
+    "Atul Kumar <atulaggarwal4288@gmail.com>",
+    "Roland Panitzek"
   ],
   "dependencies": {
     "@angular/animations": "^15.0.4",
