@@ -8,7 +8,7 @@
  - Angular 9: v9.x.x
  - Angular 10: v10.x.x 
  - Angular 12: v12.x.x
-
+ 
 Using this Module you can utilize the Monaco Editor as an Angular Component. Feel free to contribute, raise feature requests and make it better.
 
 Supports all the options available in monaco-editor [Monaco Editor Options](https://microsoft.github.io/monaco-editor/api/interfaces/monaco.editor.ieditorconstructionoptions.html)
