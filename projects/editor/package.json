@@ -1,12 +1,13 @@
 {
   "name": "@rolandp_86/ngx-monaco-editor",
-  "version": "17.1.2",
-  "description": "Monaco Code Editor For Angular 17",
+  "version": "18.0.0",
+  "description": "Monaco Code Editor For Angular 18",
   "keywords": [
     "angular 2+",
     "angular 15",
     "angular 16",
     "angular 17",
+    "angular 18",
     "monaco",
     "monaco-editor",
     "code",
@@ -28,11 +29,11 @@
     "Roland Panitzek"
   ],
   "peerDependencies": {
-    "@angular/common": "~17.3.10",
-    "@angular/core": "~17.3.10",
+    "@angular/common": "^18.0.3",
+    "@angular/core": "^18.0.3",
     "monaco-editor": "^0.49.0"
   },
   "dependencies": {
-    "tslib": "^2.6.2"
+    "tslib": "^2.6.3"
   }
 }

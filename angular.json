@@ -15,12 +15,15 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/editor-tester",
+            "outputPath": {
+              "base": "dist/editor-tester"
+            },
             "index": "projects/editor-tester/src/index.html",
-            "main": "projects/editor-tester/src/main.ts",
-            "polyfills": "projects/editor-tester/src/polyfills.ts",
+            "polyfills": [
+              "projects/editor-tester/src/polyfills.ts"
+            ],
             "tsConfig": "projects/editor-tester/tsconfig.app.json",
             "assets": [
               "projects/editor-tester/src/favicon.ico",
@@ -34,7 +37,8 @@
             "styles": [
               "projects/editor-tester/src/styles.css"
             ],
-            "scripts": []
+            "scripts": [],
+            "browser": "projects/editor-tester/src/main.ts"
           },
           "configurations": {
             "production": {
@@ -59,9 +63,7 @@
               "outputHashing": "all"
             },
             "development": {
-              "buildOptimizer": false,
               "optimization": false,
-              "vendorChunk": true,
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true
