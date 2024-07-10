@@ -1,6 +1,6 @@
 {
   "name": "@rolandp_86/ngx-monaco-editor",
-  "version": "18.0.0",
+  "version": "18.0.1",
   "description": "Monaco Code Editor For Angular 18",
   "keywords": [
     "angular 2+",
@@ -31,7 +31,7 @@
   "peerDependencies": {
     "@angular/common": "^18.0.3",
     "@angular/core": "^18.0.3",
-    "monaco-editor": "^0.49.0"
+    "monaco-editor": "^0.50.0"
   },
   "dependencies": {
     "tslib": "^2.6.3"
