@@ -1,4 +1,4 @@
-import { Component, forwardRef, Inject, Input, NgZone } from '@angular/core';
+import { Component, forwardRef, Inject, Input, NgZone, signal, model } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { fromEvent } from 'rxjs';
 
@@ -6,27 +6,31 @@ import { BaseEditor } from './base-editor';
 import { NGX_MONACO_EDITOR_CONFIG, NgxMonacoEditorConfig } from './config';
 import { NgxEditorModel } from './types';
 
-declare var monaco: any;
+declare let monaco: any;
 
 @Component({
   selector: 'ngx-monaco-editor',
   template: '<div class="editor-container" #editorContainer></div>',
-  styles: [`
+  styles: [
+    `
       :host {
-          display: block;
-          height: 200px;
+        display: block;
+        height: 200px;
       }
 
       .editor-container {
-          width: 100%;
-          height: 98%;
+        width: 100%;
+        height: 98%;
       }
-  `],
-  providers: [{
-    provide: NG_VALUE_ACCESSOR,
-    useExisting: forwardRef(() => EditorComponent),
-    multi: true
-  }]
+    `,
+  ],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => EditorComponent),
+      multi: true,
+    },
+  ],
 })
 export class EditorComponent extends BaseEditor implements ControlValueAccessor {
   private _value: string = '';
@@ -34,7 +38,10 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
   propagateChange = (_: any) => {};
   onTouched = () => {};
 
-  @Input('options')
+  isValidSyntax = model(true);
+  syntaxErrors = model([]);
+
+  @Input()
   set options(options: any) {
     this._options = Object.assign({}, this.config.defaultOptions, options);
     if (this._editor) {
@@ -47,7 +54,7 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
     return this._options;
   }
 
-  @Input('model')
+  @Input()
   set model(model: NgxEditorModel) {
     this.options.model = model;
     if (this._editor) {
@@ -56,7 +63,10 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
     }
   }
 
-  constructor(private zone: NgZone, @Inject(NGX_MONACO_EDITOR_CONFIG) private editorConfig: NgxMonacoEditorConfig) {
+  constructor(
+    private zone: NgZone,
+    @Inject(NGX_MONACO_EDITOR_CONFIG) private editorConfig: NgxMonacoEditorConfig
+  ) {
     super(editorConfig);
   }
 
@@ -79,7 +89,6 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
   }
 
   protected initMonaco(options: any): void {
-
     const hasModel = !!options.model;
 
     if (hasModel) {
@@ -108,6 +117,14 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
       });
     });
 
+    monaco.editor.onDidChangeMarkers(e => {
+      const markers: Array<any> = monaco.editor.getModelMarkers({ resource: this._editor.getModel().uri });
+      this.isValidSyntax.update(current => markers.length === 0);
+      this.syntaxErrors.set(
+        markers.map(marker => `Error: ${marker.message} at line ${marker.startLineNumber}, column ${marker.startColumn}`)
+      );
+    });
+
     this._editor.onDidBlurEditorWidget(() => {
       this.onTouched();
     });
@@ -119,5 +136,4 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
     this._windowResizeSubscription = fromEvent(window, 'resize').subscribe(() => this._editor.layout());
     this.onInit.emit(this._editor);
   }
-
 }

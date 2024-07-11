@@ -6,7 +6,7 @@ let loadedMonaco = false;
 let loadPromise: Promise<void>;
 
 @Component({
-  template: ''
+  template: '',
 })
 export abstract class BaseEditor implements AfterViewInit, OnDestroy {
   @ViewChild('editorContainer', { static: true }) _editorContainer: ElementRef;
@@ -27,13 +27,13 @@ export abstract class BaseEditor implements AfterViewInit, OnDestroy {
       loadedMonaco = true;
       loadPromise = new Promise<void>((resolve: any) => {
         const baseUrl = (this.config.baseUrl || './assets') + '/monaco-editor/min/vs';
-        if (typeof ((<any>window).monaco) === 'object') {
+        if (typeof (<any>window).monaco === 'object') {
           resolve();
           return;
         }
         const onGotAmdLoader: any = () => {
           // Load monaco
-          (<any>window).require.config({ paths: { 'vs': `${baseUrl}` } });
+          (<any>window).require.config({ paths: { vs: `${baseUrl}` } });
           (<any>window).require([`vs/editor/editor.main`], () => {
             if (typeof this.config.onMonacoLoad === 'function') {
               this.config.onMonacoLoad();

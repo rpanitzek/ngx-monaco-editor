@@ -1,12 +1,8 @@
 {
   "name": "@rolandp_86/ngx-monaco-editor",
-  "version": "18.0.1",
+  "version": "18.0.2",
   "description": "Monaco Code Editor For Angular 18",
   "keywords": [
-    "angular 2+",
-    "angular 15",
-    "angular 16",
-    "angular 17",
     "angular 18",
     "monaco",
     "monaco-editor",

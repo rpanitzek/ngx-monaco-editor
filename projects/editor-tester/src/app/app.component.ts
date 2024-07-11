@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { DiffEditorModel, NgxEditorModel } from 'editor';
 
 declare var monaco: any;
@@ -6,7 +6,7 @@ declare var monaco: any;
 @Component({
   selector: 'app-root',
   template: `
-    <h1>Editor</h1>
+    <h1>Editor (Valid Syntax {{ isValid }})</h1>
     <button (click)="updateOptions()">Change Language</button>
     <button (click)="code = ''; codeInput=''">Set Value To Empty String</button>
     <button (click)="code = null; codeInput=null">Set Value To Null</button>
@@ -14,10 +14,10 @@ declare var monaco: any;
     <button (click)="showMultiple = !showMultiple">{{showMultiple ? 'Hide' : 'Show'}} Multiple Editor</button>
 
     <div style="height: 100px">
-        <ngx-monaco-editor style="height: 100%" [options]="options" [(ngModel)]="code" (onInit)="onInit($event)"></ngx-monaco-editor>
+        <ngx-monaco-editor style="height: 100%" [options]="options" [(ngModel)]="code" (onInit)="onInit($event)" [(isValidSyntax)]="isValid"></ngx-monaco-editor>
     </div>
-    
-    <ngx-monaco-editor *ngIf="showMultiple" [options]="options" [(ngModel)]="code"></ngx-monaco-editor>
+
+    <ngx-monaco-editor *ngIf="showMultiple" [options]="options" [(ngModel)]="code" [(isValidSyntax)]="isValid"></ngx-monaco-editor>
 
     <pre>{{code | json}}</pre>
 
@@ -68,6 +68,8 @@ export class AppComponent implements OnInit {
     value: this.jsonCode,
     language: 'json'
   };
+
+  isValid;
 
   ngOnInit() {
     this.updateOptions();
