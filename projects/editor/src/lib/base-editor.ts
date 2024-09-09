@@ -9,13 +9,13 @@ let loadPromise: Promise<void>;
   template: '',
 })
 export abstract class BaseEditor implements AfterViewInit, OnDestroy {
-  @ViewChild('editorContainer', { static: true }) _editorContainer: ElementRef;
+  @ViewChild('editorContainer', { static: true }) _editorContainer: ElementRef | undefined;
   @Output() onInit = new EventEmitter<any>();
   protected _editor: any;
   protected _options: any;
-  protected _windowResizeSubscription: Subscription;
+  protected _windowResizeSubscription: Subscription | undefined;
 
-  constructor(@Inject(NGX_MONACO_EDITOR_CONFIG) protected config: NgxMonacoEditorConfig) {}
+  protected constructor(@Inject(NGX_MONACO_EDITOR_CONFIG) protected config: NgxMonacoEditorConfig) {}
 
   ngAfterViewInit(): void {
     if (loadedMonaco) {

@@ -31,7 +31,7 @@ declare var monaco: any;
   styles: []
 })
 export class AppComponent implements OnInit {
-  codeInput = 'Sample Code';
+  codeInput: string | null | undefined = 'Sample Code';
   editor: any;
   diffEditor: any;
   showMultiple = false;
@@ -39,7 +39,7 @@ export class AppComponent implements OnInit {
   options = {
     theme: 'vs-dark'
   };
-  code: string;
+  code: string | null | undefined;
   cssCode = `.my-class {
   color: red;
 }`;
@@ -69,7 +69,7 @@ export class AppComponent implements OnInit {
     language: 'json'
   };
 
-  isValid;
+  isValid = false;
 
   ngOnInit() {
     this.updateOptions();
@@ -92,7 +92,7 @@ export class AppComponent implements OnInit {
     this.modifiedModel = Object.assign({}, this.originalModel, { code: 'ABCD ef' });
   }
 
-  onInit(editor) {
+  onInit(editor: any) {
     this.editor = editor;
     console.log(editor);
     this.model = {
@@ -108,7 +108,7 @@ export class AppComponent implements OnInit {
     // editor.executeEdits("my-source", [op]);
   }
 
-  onInitDiffEditor(editor) {
+  onInitDiffEditor(editor: any) {
     this.diffEditor = editor;
     console.log(editor);
   }

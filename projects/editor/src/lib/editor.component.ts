@@ -1,4 +1,4 @@
-import { Component, forwardRef, Inject, Input, NgZone, signal, model } from '@angular/core';
+import { Component, forwardRef, Inject, Input, NgZone, signal, model, ModelSignal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { fromEvent } from 'rxjs';
 
@@ -38,8 +38,8 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
   propagateChange = (_: any) => {};
   onTouched = () => {};
 
-  isValidSyntax = model(true);
-  syntaxErrors = model([]);
+  isValidSyntax: ModelSignal<boolean> = model(true);
+  syntaxErrors: ModelSignal<string[]> = model<string[]>([]);
 
   @Input()
   set options(options: any) {
@@ -101,7 +101,9 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
       }
     }
 
-    this._editor = monaco.editor.create(this._editorContainer.nativeElement, options);
+    if(this._editorContainer){
+      this._editor = monaco.editor.create(this._editorContainer.nativeElement, options);
+    }
 
     if (!hasModel) {
       this._editor.setValue(this._value);
@@ -117,7 +119,7 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
       });
     });
 
-    monaco.editor.onDidChangeMarkers(e => {
+    monaco.editor.onDidChangeMarkers((e: any) => {
       const markers: Array<any> = monaco.editor.getModelMarkers({ resource: this._editor.getModel().uri });
       this.isValidSyntax.update(current => markers.length === 0);
       this.syntaxErrors.set(

@@ -25,8 +25,8 @@ declare let monaco: any;
   ],
 })
 export class DiffEditorComponent extends BaseEditor {
-  _originalModel: DiffEditorModel;
-  _modifiedModel: DiffEditorModel;
+  _originalModel: DiffEditorModel | undefined;
+  _modifiedModel: DiffEditorModel  | undefined;
 
   @Input()
   set options(options: any) {
@@ -74,10 +74,11 @@ export class DiffEditorComponent extends BaseEditor {
     const originalModel = monaco.editor.createModel(this._originalModel.code, this._originalModel.language);
     const modifiedModel = monaco.editor.createModel(this._modifiedModel.code, this._modifiedModel.language);
 
-    this._editorContainer.nativeElement.innerHTML = '';
-    const theme = options.theme;
-    this._editor = monaco.editor.createDiffEditor(this._editorContainer.nativeElement, options);
-    options.theme = theme;
+    if (this._editorContainer) {
+      this._editorContainer.nativeElement.innerHTML = '';
+      this._editor = monaco.editor.createDiffEditor(this._editorContainer.nativeElement, options);
+    }
+
     this._editor.setModel({
       original: originalModel,
       modified: modifiedModel,
