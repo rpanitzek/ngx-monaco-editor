@@ -8,10 +8,10 @@ import { DiffEditorModel } from './types';
 declare let monaco: any;
 
 @Component({
-  selector: 'ngx-monaco-diff-editor',
-  template: '<div class="editor-container" #editorContainer></div>',
-  styles: [
-    `
+    selector: 'ngx-monaco-diff-editor',
+    template: '<div class="editor-container" #editorContainer></div>',
+    styles: [
+        `
       :host {
         display: block;
         height: 200px;
@@ -22,7 +22,8 @@ declare let monaco: any;
         height: 98%;
       }
     `,
-  ],
+    ],
+    standalone: false
 })
 export class DiffEditorComponent extends BaseEditor {
   _originalModel: DiffEditorModel | undefined;

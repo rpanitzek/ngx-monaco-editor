@@ -4,8 +4,8 @@ import { DiffEditorModel, NgxEditorModel } from 'editor';
 declare var monaco: any;
 
 @Component({
-  selector: 'app-root',
-  template: `
+    selector: 'app-root',
+    template: `
     <h1>Editor (Valid Syntax {{ isValid }})</h1>
     <button (click)="updateOptions()">Change Language</button>
     <button (click)="code = ''; codeInput=''">Set Value To Empty String</button>
@@ -28,7 +28,8 @@ declare var monaco: any;
 
     <ngx-monaco-editor [options]="options" [model]="model"></ngx-monaco-editor>
   `,
-  styles: []
+    styles: [],
+    standalone: false
 })
 export class AppComponent implements OnInit {
   codeInput: string | null | undefined = 'Sample Code';

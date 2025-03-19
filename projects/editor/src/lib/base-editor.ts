@@ -6,7 +6,8 @@ let loadedMonaco = false;
 let loadPromise: Promise<void>;
 
 @Component({
-  template: '',
+    template: '',
+    standalone: false
 })
 export abstract class BaseEditor implements AfterViewInit, OnDestroy {
   @ViewChild('editorContainer', { static: true }) _editorContainer: ElementRef | undefined;
