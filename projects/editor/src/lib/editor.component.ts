@@ -9,6 +9,7 @@ import { NgxEditorModel } from './types';
 declare let monaco: any;
 
 @Component({
+  standalone: false,
   selector: 'ngx-monaco-editor',
   template: '<div class="editor-container" #editorContainer></div>',
   styles: [
