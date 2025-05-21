@@ -1,6 +1,6 @@
 {
   "name": "@rolandp_86/ngx-monaco-editor",
-  "version": "19.0.0",
+  "version": "19.1.0",
   "description": "Monaco Code Editor For Angular 19",
   "keywords": [
     "angular 19",
@@ -23,7 +23,8 @@
     "e2e": "ng e2e",
     "build-editor": "ng build editor",
     "npm-publish": "npm run build-editor && bash npm-publish",
-    "copy:readme": "copy -rf README.md projects/editor/"
+    "copy:readme": "copy -rf README.md projects/editor/",
+    "update:angular": "ncu --filter \"@angular*\" -u"
   },
   "private": false,
   "repository": {
@@ -39,29 +40,29 @@
     "Roland Panitzek"
   ],
   "dependencies": {
-    "@angular/animations": "~19.2.2",
-    "@angular/common": "~19.2.2",
-    "@angular/compiler": "~19.2.2",
-    "@angular/core": "~19.2.2",
-    "@angular/forms": "~19.2.2",
-    "@angular/platform-browser": "~19.2.2",
-    "@angular/platform-browser-dynamic": "~19.2.2",
-    "@angular/router": "~19.2.2",
+    "@angular/animations": "~19.2.11",
+    "@angular/common": "~19.2.11",
+    "@angular/compiler": "~19.2.11",
+    "@angular/core": "~19.2.11",
+    "@angular/forms": "~19.2.11",
+    "@angular/platform-browser": "~19.2.11",
+    "@angular/platform-browser-dynamic": "~19.2.11",
+    "@angular/router": "~19.2.11",
     "monaco-editor": "^0.52.2",
     "rxjs": "~7.4.0",
     "tslib": "^2.7.0",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "~19.2.3",
-    "@angular-eslint/builder": "^19.2.1",
-    "@angular-eslint/eslint-plugin": "^19.2.1",
-    "@angular-eslint/eslint-plugin-template": "^19.2.1",
-    "@angular-eslint/schematics": "^19.2.1",
-    "@angular-eslint/template-parser": "^19.2.1",
-    "@angular/cli": "~19.2.3",
-    "@angular/compiler-cli": "~19.2.2",
-    "@angular/language-service": "~19.2.2",
+    "@angular-devkit/build-angular": "~19.2.13",
+    "@angular-eslint/builder": "^19.4.0",
+    "@angular-eslint/eslint-plugin": "^19.4.0",
+    "@angular-eslint/eslint-plugin-template": "^19.4.0",
+    "@angular-eslint/schematics": "^19.4.0",
+    "@angular-eslint/template-parser": "^19.4.0",
+    "@angular/cli": "~19.2.13",
+    "@angular/compiler-cli": "~19.2.11",
+    "@angular/language-service": "~19.2.11",
     "@types/jasmine": "~5.1.4",
     "@types/node": "^22.5.4",
     "@typescript-eslint/eslint-plugin": "^8.4.0",
@@ -75,8 +76,8 @@
     "karma-coverage": "~2.0.3",
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "^1.5.0",
-    "ng-packagr": "^19.2.0",
+    "ng-packagr": "^19.2.2",
     "npm-run-all": "^4.1.5",
-    "typescript": "5.5.4"
+    "typescript": "5.8.3"
   }
 }

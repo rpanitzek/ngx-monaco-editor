@@ -1,9 +1,4 @@
-import { NgModule } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { BrowserModule } from '@angular/platform-browser';
-import { MonacoEditorModule, NgxMonacoEditorConfig } from 'editor';
-
-import { AppComponent } from './app.component';
+import { NgxMonacoEditorConfig } from 'editor';
 
 declare var monaco: any;
 
@@ -38,26 +33,12 @@ export function onMonacoLoad() {
       }
     }]
   });
-
 }
 
-const monacoConfig: NgxMonacoEditorConfig = {
+export const monacoConfig: NgxMonacoEditorConfig = {
   baseUrl: 'assets',
   defaultOptions: { scrollBeyondLastLine: false },
   onMonacoLoad
 };
 
-@NgModule({
-  declarations: [
-    AppComponent
-  ],
-  imports: [
-    BrowserModule,
-    FormsModule,
-    MonacoEditorModule.forRoot(monacoConfig)
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
-})
-export class AppModule {
-}
+

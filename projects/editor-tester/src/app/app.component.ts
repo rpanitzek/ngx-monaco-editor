@@ -1,35 +1,51 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { DiffEditorModel, NgxEditorModel } from 'editor';
+import { MonacoEditorModule } from '../../../editor/src/lib/editor.module';
+import { FormsModule } from '@angular/forms';
+import { JsonPipe } from '@angular/common';
 
 declare var monaco: any;
 
 @Component({
-    selector: 'app-root',
-    template: `
+  selector: 'app-root',
+  template: `
     <h1>Editor (Valid Syntax {{ isValid }})</h1>
     <button (click)="updateOptions()">Change Language</button>
-    <button (click)="code = ''; codeInput=''">Set Value To Empty String</button>
-    <button (click)="code = null; codeInput=null">Set Value To Null</button>
-    <button (click)="code = undefined; codeInput=undefined">Set Value To undefined</button>
-    <button (click)="showMultiple = !showMultiple">{{showMultiple ? 'Hide' : 'Show'}} Multiple Editor</button>
+    <button (click)="code = ''; codeInput = ''">Set Value To Empty String</button>
+    <button (click)="code = null; codeInput = null">Set Value To Null</button>
+    <button (click)="code = undefined; codeInput = undefined">Set Value To undefined</button>
+    <button (click)="showMultiple = !showMultiple">{{ showMultiple ? 'Hide' : 'Show' }} Multiple Editor</button>
 
     <div style="height: 100px">
-        <ngx-monaco-editor style="height: 100%" [options]="options" [(ngModel)]="code" (onInit)="onInit($event)" [(isValidSyntax)]="isValid"></ngx-monaco-editor>
+      <ngx-monaco-editor
+        style="height: 100%"
+        [options]="options"
+        [(ngModel)]="code"
+        (onInit)="onInit($event)"
+        [(isValidSyntax)]="isValid"></ngx-monaco-editor>
     </div>
 
-    <ngx-monaco-editor *ngIf="showMultiple" [options]="options" [(ngModel)]="code" [(isValidSyntax)]="isValid"></ngx-monaco-editor>
+    <ngx-monaco-editor
+      *ngIf="showMultiple"
+      [options]="options"
+      [(ngModel)]="code"
+      [(isValidSyntax)]="isValid"></ngx-monaco-editor>
 
-    <pre>{{code | json}}</pre>
+    <pre>{{ code | json }}</pre>
 
     <h1>Diff Editor</h1>
     <button (click)="updateDiffModel()">Update Models</button>
-    <ngx-monaco-diff-editor [options]="options" [originalModel]="originalModel" [modifiedModel]="modifiedModel"
-                            (onInit)="onInitDiffEditor($event)"></ngx-monaco-diff-editor>
+    <ngx-monaco-diff-editor
+      [options]="options"
+      [originalModel]="originalModel"
+      [modifiedModel]="modifiedModel"
+      (onInit)="onInitDiffEditor($event)"></ngx-monaco-diff-editor>
 
     <ngx-monaco-editor [options]="options" [model]="model"></ngx-monaco-editor>
   `,
-    styles: [],
-    standalone: false
+  styles: [],
+  standalone: true,
+  imports: [MonacoEditorModule, FormsModule, JsonPipe],
 })
 export class AppComponent implements OnInit {
   codeInput: string | null | undefined = 'Sample Code';
@@ -38,7 +54,7 @@ export class AppComponent implements OnInit {
   showMultiple = false;
   toggleLanguage = true;
   options = {
-    theme: 'vs-dark'
+    theme: 'vs-dark',
   };
   code: string | null | undefined;
   cssCode = `.my-class {
@@ -50,24 +66,19 @@ export class AppComponent implements OnInit {
 
   originalModel: DiffEditorModel = {
     code: 'heLLo world!',
-    language: 'text/plain'
+    language: 'text/plain',
   };
 
   modifiedModel: DiffEditorModel = {
     code: 'hello orlando!',
-    language: 'text/plain'
+    language: 'text/plain',
   };
 
-  jsonCode = [
-    '{',
-    '    "p1": "v3",',
-    '    "p2": false',
-    '}'
-  ].join('\n');
+  jsonCode = ['{', '    "p1": "v3",', '    "p2": false', '}'].join('\n');
 
   model: NgxEditorModel = {
     value: this.jsonCode,
-    language: 'json'
+    language: 'json',
   };
 
   isValid = false;
@@ -85,7 +96,6 @@ export class AppComponent implements OnInit {
       this.code = this.jsCode;
       this.options = Object.assign({}, this.options, { language: 'javascript' });
     }
-
   }
 
   updateDiffModel() {
@@ -99,7 +109,7 @@ export class AppComponent implements OnInit {
     this.model = {
       value: this.jsonCode,
       language: 'json',
-      uri: monaco.Uri.parse('a://b/foo.json')
+      uri: monaco.Uri.parse('a://b/foo.json'),
     };
     // let line = editor.getPosition();
     // let range = new monaco.Range(line.lineNumber, 1, line.lineNumber, 1);

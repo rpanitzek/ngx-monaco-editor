@@ -6,7 +6,7 @@ import { BaseEditor } from './base-editor';
 import { NGX_MONACO_EDITOR_CONFIG, NgxMonacoEditorConfig } from './config';
 import { NgxEditorModel } from './types';
 
-declare let monaco: any;
+declare const monaco: typeof import('monaco-editor');
 
 @Component({
   standalone: false,
