@@ -3,6 +3,7 @@ import { DiffEditorModel, NgxEditorModel } from 'editor';
 import { MonacoEditorModule } from '../../../editor/src/lib/editor.module';
 import { FormsModule } from '@angular/forms';
 import { JsonPipe } from '@angular/common';
+import { StandaloneEditorComponent } from '../../../editor/src/lib/standalone-editor.component';
 
 declare var monaco: any;
 
@@ -17,19 +18,20 @@ declare var monaco: any;
     <button (click)="showMultiple = !showMultiple">{{ showMultiple ? 'Hide' : 'Show' }} Multiple Editor</button>
 
     <div style="height: 100px">
-      <ngx-monaco-editor
+      <ngx-standalone-monaco-editor
         style="height: 100%"
         [options]="options"
-        [(ngModel)]="code"
+        [(value)]="code"
         (onInit)="onInit($event)"
-        [(isValidSyntax)]="isValid"></ngx-monaco-editor>
+      [(isValidSyntax)]="isValid"></ngx-standalone-monaco-editor>
     </div>
 
-    <ngx-monaco-editor
-      *ngIf="showMultiple"
-      [options]="options"
-      [(ngModel)]="code"
+    @if (showMultiple) {
+      <ngx-monaco-editor
+        [options]="options"
+        [(ngModel)]="code"
       [(isValidSyntax)]="isValid"></ngx-monaco-editor>
+    }
 
     <pre>{{ code | json }}</pre>
 
@@ -39,13 +41,13 @@ declare var monaco: any;
       [options]="options"
       [originalModel]="originalModel"
       [modifiedModel]="modifiedModel"
-      (onInit)="onInitDiffEditor($event)"></ngx-monaco-diff-editor>
+    (onInit)="onInitDiffEditor($event)"></ngx-monaco-diff-editor>
 
     <ngx-monaco-editor [options]="options" [model]="model"></ngx-monaco-editor>
-  `,
+    `,
   styles: [],
   standalone: true,
-  imports: [MonacoEditorModule, FormsModule, JsonPipe],
+  imports: [MonacoEditorModule, StandaloneEditorComponent, FormsModule, JsonPipe],
 })
 export class AppComponent implements OnInit {
   codeInput: string | null | undefined = 'Sample Code';
