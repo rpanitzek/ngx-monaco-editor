@@ -3,7 +3,6 @@ import { fromEvent } from 'rxjs';
 
 import { BaseEditor } from './base-editor';
 import { NGX_MONACO_EDITOR_CONFIG, NgxMonacoEditorConfig } from './config';
-import { NgxEditorModel } from './types';
 
 declare const monaco: typeof import('monaco-editor');
 
@@ -25,10 +24,9 @@ declare const monaco: typeof import('monaco-editor');
     `,
   ],
 })
-export class StandaloneEditorComponent extends BaseEditor  {
-
-  value: ModelSignal<any>  = model<any>('');
-  options: ModelSignal<any>  = model<any>('');
+export class StandaloneEditorComponent extends BaseEditor {
+  value: ModelSignal<any> = model<any>('');
+  options: ModelSignal<any> = model<any>('');
 
   isValidSyntax: ModelSignal<boolean> = model(true);
   syntaxErrors: ModelSignal<string[]> = model<string[]>([]);
@@ -48,7 +46,7 @@ export class StandaloneEditorComponent extends BaseEditor  {
 
     effect(() => {
       const val = this.options();
-      if(val){
+      if (val) {
         this._options = Object.assign({}, this.config.defaultOptions, val);
         if (this._editor) {
           this._editor.dispose();
@@ -71,7 +69,7 @@ export class StandaloneEditorComponent extends BaseEditor  {
       }
     }
 
-    if(this._editorContainer){
+    if (this._editorContainer) {
       this._editor = monaco.editor.create(this._editorContainer.nativeElement, options);
     }
 
@@ -84,12 +82,21 @@ export class StandaloneEditorComponent extends BaseEditor  {
 
       // value is not propagated to parent when executing outside zone.
       this.zone.run(() => {
-        this.value.set(value)
+        this.value.set(value);
       });
     });
 
     monaco.editor.onDidChangeMarkers((e: any) => {
-      const markers: Array<any> = monaco.editor.getModelMarkers({ resource: this._editor.getModel().uri });
+      if (!this._editor || !this._editor.getModel()) {
+        this.isValidSyntax.update(() => false); // or true, depending on your desired fallback behavior
+        this.syntaxErrors.set(['Editor is not initialized.']);
+        return;
+      }
+
+      const markers: Array<any> = monaco.editor.getModelMarkers({
+        resource: this._editor.getModel().uri,
+      });
+
       this.isValidSyntax.update(current => markers.length === 0);
       this.syntaxErrors.set(
         markers.map(marker => `Error: ${marker.message} at line ${marker.startLineNumber}, column ${marker.startColumn}`)

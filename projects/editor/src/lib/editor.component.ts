@@ -102,7 +102,7 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
       }
     }
 
-    if(this._editorContainer){
+    if (this._editorContainer) {
       this._editor = monaco.editor.create(this._editorContainer.nativeElement, options);
     }
 
@@ -121,6 +121,12 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
     });
 
     monaco.editor.onDidChangeMarkers((e: any) => {
+      if (!this._editor || !this._editor.getModel()) {
+        this.isValidSyntax.update(() => false); // or true, depending on your desired fallback behavior
+        this.syntaxErrors.set(['Editor is not initialized.']);
+        return;
+      }
+
       const markers: Array<any> = monaco.editor.getModelMarkers({ resource: this._editor.getModel().uri });
       this.isValidSyntax.update(current => markers.length === 0);
       this.syntaxErrors.set(

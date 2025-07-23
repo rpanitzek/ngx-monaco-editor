@@ -22,6 +22,7 @@ declare var monaco: any;
         style="height: 100%"
         [options]="options"
         [(value)]="code"
+        (valueChange)="valueChanged($event)"
         (onInit)="onInit($event)"
       [(isValidSyntax)]="isValid"></ngx-standalone-monaco-editor>
     </div>
@@ -87,6 +88,10 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.updateOptions();
+  }
+
+  valueChanged(event: string): void {
+    //console.log('valueChanged', event);
   }
 
   updateOptions() {

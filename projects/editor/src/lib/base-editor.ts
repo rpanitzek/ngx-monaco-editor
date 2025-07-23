@@ -5,6 +5,8 @@ import { Subscription } from 'rxjs';
 let loadedMonaco = false;
 let loadPromise: Promise<void>;
 
+import type * as monacoEditor from 'monaco-editor';
+
 @Component({
     template: '',
     standalone: false
@@ -12,7 +14,8 @@ let loadPromise: Promise<void>;
 export abstract class BaseEditor implements AfterViewInit, OnDestroy {
   @ViewChild('editorContainer', { static: true }) _editorContainer: ElementRef | undefined;
   @Output() onInit = new EventEmitter<any>();
-  protected _editor: any;
+
+  protected _editor: monacoEditor.editor.IStandaloneCodeEditor | undefined | any;
   protected _options: any;
   protected _windowResizeSubscription: Subscription | undefined;
 
