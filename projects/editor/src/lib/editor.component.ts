@@ -45,9 +45,23 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
   @Input()
   set options(options: any) {
     this._options = Object.assign({}, this.config.defaultOptions, options);
+
     if (this._editor) {
-      this._editor.dispose();
-      this.initMonaco(options);
+      const mergedOptions = Object.assign({}, this.config.defaultOptions, options);
+
+      console.log('change-options', mergedOptions);
+
+      // Update editor dynamically
+      this._editor.updateOptions(mergedOptions);
+
+      // You can update language/model separately if needed
+      if (options.model && this._editor.getModel() !== options.model) {
+        this._editor.setModel(options.model);
+      }
+
+      this._options = mergedOptions;
+    }else{
+      //this.initMonaco(options);
     }
   }
 
@@ -57,10 +71,35 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
 
   @Input()
   set model(model: NgxEditorModel) {
-    this.options.model = model;
+    if (!model) return;
+
+    console.log('model', model);
+
+    // If editor exists
     if (this._editor) {
-      this._editor.dispose();
-      this.initMonaco(this.options);
+      // Get Monaco model by URI
+      let monacoModel = monaco.editor.getModel(model.uri);
+
+      if (!monacoModel) {
+        // Create a new Monaco model if it doesn’t exist
+        monacoModel = monaco.editor.createModel(
+          model.value || '',
+          model.language || 'html',
+          model.uri
+        );
+      }
+
+      // Only set if it's a different Monaco model
+      if (this._editor.getModel()?.uri.toString() !== monacoModel.uri.toString()) {
+        this._editor.setModel(monacoModel);
+      }
+    } else {
+      // Editor not initialized yet
+      this.options = {
+        ...this.options,
+        model: model,
+      };
+      //this.initMonaco(this.options);
     }
   }
 
@@ -92,7 +131,7 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
   protected initMonaco(options: any): void {
     const hasModel = !!options.model;
 
-    if (hasModel) {
+    if (hasModel && monaco) {
       const model = monaco.editor.getModel(options.model.uri || '');
       if (model) {
         options.model = model;
@@ -103,6 +142,7 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
     }
 
     if (this._editorContainer) {
+      console.log('Init with options', options);
       this._editor = monaco.editor.create(this._editorContainer.nativeElement, options);
     }
 

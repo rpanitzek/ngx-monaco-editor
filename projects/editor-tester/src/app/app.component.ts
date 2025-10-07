@@ -17,7 +17,7 @@ declare var monaco: any;
     <button (click)="code = undefined; codeInput = undefined">Set Value To undefined</button>
     <button (click)="showMultiple = !showMultiple">{{ showMultiple ? 'Hide' : 'Show' }} Multiple Editor</button>
 
-    <div style="height: 100px">
+    <div style="height: 200px">
       <ngx-standalone-monaco-editor
         style="height: 100%"
         [options]="options"
@@ -27,12 +27,17 @@ declare var monaco: any;
       [(isValidSyntax)]="isValid"></ngx-standalone-monaco-editor>
     </div>
 
-    @if (showMultiple) {
+    <ngx-monaco-editor
+      [options]="options"
+      [(ngModel)]="code"
+      [(isValidSyntax)]="isValid"></ngx-monaco-editor>
+
+  <!--  @if (showMultiple) {
       <ngx-monaco-editor
         [options]="options"
         [(ngModel)]="code"
       [(isValidSyntax)]="isValid"></ngx-monaco-editor>
-    }
+    }-->
 
     <pre>{{ code | json }}</pre>
 

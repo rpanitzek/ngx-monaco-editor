@@ -40,17 +40,26 @@ export class StandaloneEditorComponent extends BaseEditor {
     effect(() => {
       const val = this.value();
       if (this._editor && !this.options().model && this._editor.getValue() !== val) {
-        this._editor.setValue(val);
+        this._editor.setValue(val ?? "");
       }
     });
 
     effect(() => {
-      const val = this.options();
-      if (val) {
-        this._options = Object.assign({}, this.config.defaultOptions, val);
+      const options = this.options();
+      if (options) {
+        this._options = Object.assign({}, this.config.defaultOptions, options);
         if (this._editor) {
-          this._editor.dispose();
-          this.initMonaco(val);
+          const mergedOptions = Object.assign({}, this.config.defaultOptions, options);
+
+          console.log('options changed', mergedOptions);
+
+          // Update editor dynamically
+          this._editor.updateOptions(mergedOptions);
+
+          // You can update language/model separately if needed
+          if (options.model && this._editor.getModel() !== options.model) {
+            this._editor.setModel(options.model);
+          }
         }
       }
     });

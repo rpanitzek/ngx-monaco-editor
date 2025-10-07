@@ -1,6 +1,6 @@
 {
   "name": "@rolandp_86/ngx-monaco-editor",
-  "version": "20.1.0",
+  "version": "20.3.0",
   "description": "Monaco Code Editor For Angular 20",
   "keywords": [
     "angular 20",
@@ -25,11 +25,11 @@
     "Roland Panitzek"
   ],
   "peerDependencies": {
-    "@angular/common": "^20.1.2",
-    "@angular/core": "^20.1.2",
-    "monaco-editor": "^0.52.2"
+    "@angular/common": "^20.3.3",
+    "@angular/core": "^20.3.3",
+    "monaco-editor": "^0.54.0"
   },
   "dependencies": {
-    "tslib": "^2.7.0"
+    "tslib": "^2.8.1"
   }
 }
