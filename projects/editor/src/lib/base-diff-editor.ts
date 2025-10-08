@@ -10,9 +10,9 @@ import { ensureMonacoLoaded } from './monaco-loader';
 })
 export abstract class BaseDiffEditor implements AfterViewInit, OnDestroy {
   @ViewChild('editorContainer', { static: true }) _editorContainer: ElementRef | undefined;
-  @Output() onInit = new EventEmitter<any>();
+  @Output() onInit = new EventEmitter<editor.IStandaloneDiffEditor>();
 
-  protected _editor!: editor.IDiffEditor;
+  protected _editor!: editor.IStandaloneDiffEditor;
   protected _options: editor.IStandaloneDiffEditorConstructionOptions | undefined;
   protected _windowResizeSubscription: Subscription | undefined;
 
