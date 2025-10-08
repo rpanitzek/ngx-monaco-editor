@@ -4,6 +4,7 @@ import { MonacoEditorModule } from '../../../editor/src/lib/editor.module';
 import { FormsModule } from '@angular/forms';
 import { JsonPipe } from '@angular/common';
 import { StandaloneEditorComponent } from '../../../editor/src/lib/standalone-editor.component';
+import type { editor } from 'monaco-editor';
 
 declare var monaco: any;
 
@@ -18,26 +19,19 @@ declare var monaco: any;
     <button (click)="showMultiple = !showMultiple">{{ showMultiple ? 'Hide' : 'Show' }} Multiple Editor</button>
 
     <div style="height: 200px">
-      <ngx-standalone-monaco-editor
-        style="height: 100%"
-        [options]="options"
-        [(value)]="code"
-        (valueChange)="valueChanged($event)"
-        (onInit)="onInit($event)"
-      [(isValidSyntax)]="isValid"></ngx-standalone-monaco-editor>
+      <ngx-monaco-editor [options]="options" [(ngModel)]="code" [(isValidSyntax)]="isValid"></ngx-monaco-editor>
     </div>
 
-    <ngx-monaco-editor
-      [options]="options"
-      [(ngModel)]="code"
-      [(isValidSyntax)]="isValid"></ngx-monaco-editor>
-
-  <!--  @if (showMultiple) {
-      <ngx-monaco-editor
-        [options]="options"
-        [(ngModel)]="code"
-      [(isValidSyntax)]="isValid"></ngx-monaco-editor>
-    }-->
+    @if (showMultiple) {
+      <div style="height: 200px">
+        <ngx-standalone-monaco-editor
+          [options]="options"
+          [(value)]="code"
+          (valueChange)="valueChanged($event)"
+          (onInit)="onInit($event)"
+          [(isValidSyntax)]="isValid"></ngx-standalone-monaco-editor>
+      </div>
+    }
 
     <pre>{{ code | json }}</pre>
 
@@ -47,10 +41,8 @@ declare var monaco: any;
       [options]="options"
       [originalModel]="originalModel"
       [modifiedModel]="modifiedModel"
-    (onInit)="onInitDiffEditor($event)"></ngx-monaco-diff-editor>
-
-    <ngx-monaco-editor [options]="options" [model]="model"></ngx-monaco-editor>
-    `,
+      (onInit)="onInitDiffEditor($event)"></ngx-monaco-diff-editor>
+  `,
   styles: [],
   standalone: true,
   imports: [MonacoEditorModule, StandaloneEditorComponent, FormsModule, JsonPipe],
@@ -61,8 +53,9 @@ export class AppComponent implements OnInit {
   diffEditor: any;
   showMultiple = false;
   toggleLanguage = true;
-  options = {
+  options: editor.IStandaloneEditorConstructionOptions = {
     theme: 'vs-dark',
+    language: 'html',
   };
   code: string | null | undefined;
   cssCode = `.my-class {
@@ -117,7 +110,6 @@ export class AppComponent implements OnInit {
 
   onInit(editor: any) {
     this.editor = editor;
-    console.log(editor);
     this.model = {
       value: this.jsonCode,
       language: 'json',
@@ -133,6 +125,5 @@ export class AppComponent implements OnInit {
 
   onInitDiffEditor(editor: any) {
     this.diffEditor = editor;
-    console.log(editor);
   }
 }

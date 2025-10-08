@@ -3,6 +3,8 @@ import { fromEvent } from 'rxjs';
 
 import { BaseEditor } from './base-editor';
 import { NGX_MONACO_EDITOR_CONFIG, NgxMonacoEditorConfig } from './config';
+import { IDisposable } from 'monaco-editor';
+import type * as monacoEditor from 'monaco-editor';
 
 declare const monaco: typeof import('monaco-editor');
 
@@ -30,6 +32,8 @@ export class StandaloneEditorComponent extends BaseEditor {
 
   isValidSyntax: ModelSignal<boolean> = model(true);
   syntaxErrors: ModelSignal<string[]> = model<string[]>([]);
+
+  onDidChangeMarkersListener: IDisposable | undefined;
 
   constructor(
     private zone: NgZone,
@@ -65,6 +69,13 @@ export class StandaloneEditorComponent extends BaseEditor {
     });
   }
 
+  override ngOnDestroy() {
+    if(this.onDidChangeMarkersListener){
+      this.onDidChangeMarkersListener.dispose();
+    }
+    super.ngOnDestroy();
+  }
+
   protected initMonaco(options: any): void {
     const hasModel = !!options.model;
 
@@ -78,8 +89,14 @@ export class StandaloneEditorComponent extends BaseEditor {
       }
     }
 
+    let editorCreateOptions: monacoEditor.editor.IStandaloneEditorConstructionOptions = {
+      ...options,
+      ...options.options,
+    };
+
     if (this._editorContainer) {
-      this._editor = monaco.editor.create(this._editorContainer.nativeElement, options);
+      console.log('Init standalone with options', editorCreateOptions);
+      this._editor = monaco.editor.create(this._editorContainer.nativeElement, editorCreateOptions);
     }
 
     if (!hasModel) {
@@ -95,7 +112,7 @@ export class StandaloneEditorComponent extends BaseEditor {
       });
     });
 
-    monaco.editor.onDidChangeMarkers((e: any) => {
+    this.onDidChangeMarkersListener = monaco.editor.onDidChangeMarkers((e: any) => {
       if (!this._editor || !this._editor.getModel()) {
         this.isValidSyntax.update(() => false); // or true, depending on your desired fallback behavior
         this.syntaxErrors.set(['Editor is not initialized.']);
@@ -103,7 +120,7 @@ export class StandaloneEditorComponent extends BaseEditor {
       }
 
       const markers: Array<any> = monaco.editor.getModelMarkers({
-        resource: this._editor.getModel().uri,
+        resource: this._editor.getModel()!.uri,
       });
 
       this.isValidSyntax.update(current => markers.length === 0);

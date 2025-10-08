@@ -1,10 +1,12 @@
-import { Component, forwardRef, Inject, Input, NgZone, signal, model, ModelSignal } from '@angular/core';
+import { Component, forwardRef, Inject, Input, NgZone, model, ModelSignal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { fromEvent } from 'rxjs';
 
 import { BaseEditor } from './base-editor';
 import { NGX_MONACO_EDITOR_CONFIG, NgxMonacoEditorConfig } from './config';
 import { NgxEditorModel } from './types';
+import { IDisposable } from 'monaco-editor';
+import type { editor } from 'monaco-editor';
 
 declare const monaco: typeof import('monaco-editor');
 
@@ -42,8 +44,10 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
   isValidSyntax: ModelSignal<boolean> = model(true);
   syntaxErrors: ModelSignal<string[]> = model<string[]>([]);
 
+  onDidChangeMarkersListener: IDisposable | undefined;
+
   @Input()
-  set options(options: any) {
+  set options(options: editor.IStandaloneEditorConstructionOptions) {
     this._options = Object.assign({}, this.config.defaultOptions, options);
 
     if (this._editor) {
@@ -60,8 +64,6 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
       }
 
       this._options = mergedOptions;
-    }else{
-      //this.initMonaco(options);
     }
   }
 
@@ -73,8 +75,6 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
   set model(model: NgxEditorModel) {
     if (!model) return;
 
-    console.log('model', model);
-
     // If editor exists
     if (this._editor) {
       // Get Monaco model by URI
@@ -82,11 +82,7 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
 
       if (!monacoModel) {
         // Create a new Monaco model if it doesn’t exist
-        monacoModel = monaco.editor.createModel(
-          model.value || '',
-          model.language || 'html',
-          model.uri
-        );
+        monacoModel = monaco.editor.createModel(model.value || '', model.language || 'html', model.uri);
       }
 
       // Only set if it's a different Monaco model
@@ -99,7 +95,6 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
         ...this.options,
         model: model,
       };
-      //this.initMonaco(this.options);
     }
   }
 
@@ -128,16 +123,27 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
     this.onTouched = fn;
   }
 
-  protected initMonaco(options: any): void {
+  override ngOnDestroy() {
+    if(this.onDidChangeMarkersListener){
+      this.onDidChangeMarkersListener.dispose();
+    }
+    super.ngOnDestroy();
+  }
+
+  protected initMonaco(options: editor.IStandaloneEditorConstructionOptions): void {
     const hasModel = !!options.model;
 
     if (hasModel && monaco) {
-      const model = monaco.editor.getModel(options.model.uri || '');
-      if (model) {
-        options.model = model;
-        options.model.setValue(this._value);
-      } else {
-        options.model = monaco.editor.createModel(options.model.value, options.model.language, options.model.uri);
+      let providedModel = options.model;
+      if(providedModel && providedModel.uri){
+        const model = monaco.editor.getModel(providedModel.uri);
+
+        if (model) {
+          options.model = model;
+          options.model.setValue(this._value);
+        } else {
+          options.model = monaco.editor.createModel(model ?? '');
+        }
       }
     }
 
@@ -160,14 +166,14 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
       });
     });
 
-    monaco.editor.onDidChangeMarkers((e: any) => {
+    this.onDidChangeMarkersListener = monaco.editor.onDidChangeMarkers((e: any) => {
       if (!this._editor || !this._editor.getModel()) {
         this.isValidSyntax.update(() => false); // or true, depending on your desired fallback behavior
         this.syntaxErrors.set(['Editor is not initialized.']);
         return;
       }
 
-      const markers: Array<any> = monaco.editor.getModelMarkers({ resource: this._editor.getModel().uri });
+      const markers: Array<any> = monaco.editor.getModelMarkers({ resource: this._editor.getModel()!.uri });
       this.isValidSyntax.update(current => markers.length === 0);
       this.syntaxErrors.set(
         markers.map(marker => `Error: ${marker.message} at line ${marker.startLineNumber}, column ${marker.startColumn}`)
@@ -183,6 +189,7 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
       this._windowResizeSubscription.unsubscribe();
     }
     this._windowResizeSubscription = fromEvent(window, 'resize').subscribe(() => this._editor.layout());
+
     this.onInit.emit(this._editor);
   }
 }

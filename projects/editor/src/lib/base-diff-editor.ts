@@ -8,12 +8,12 @@ import { ensureMonacoLoaded } from './monaco-loader';
   template: '',
   standalone: false,
 })
-export abstract class BaseEditor implements AfterViewInit, OnDestroy {
+export abstract class BaseDiffEditor implements AfterViewInit, OnDestroy {
   @ViewChild('editorContainer', { static: true }) _editorContainer: ElementRef | undefined;
-  @Output() onInit = new EventEmitter<editor.ICodeEditor>();
+  @Output() onInit = new EventEmitter<any>();
 
-  protected _editor!: editor.ICodeEditor;
-  protected _options: editor.IStandaloneEditorConstructionOptions | undefined;
+  protected _editor!: editor.IDiffEditor;
+  protected _options: editor.IStandaloneDiffEditorConstructionOptions | undefined;
   protected _windowResizeSubscription: Subscription | undefined;
 
   protected constructor(@Inject(NGX_MONACO_EDITOR_CONFIG) protected config: NgxMonacoEditorConfig) {}
@@ -24,7 +24,7 @@ export abstract class BaseEditor implements AfterViewInit, OnDestroy {
     });
   }
 
-  protected abstract initMonaco(options: editor.IStandaloneEditorConstructionOptions | undefined): void;
+  protected abstract initMonaco(options: editor.IStandaloneDiffEditorConstructionOptions): void;
 
   ngOnDestroy() {
     if (this._windowResizeSubscription) {
