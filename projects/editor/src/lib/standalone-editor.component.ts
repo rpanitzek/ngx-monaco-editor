@@ -3,7 +3,7 @@ import { fromEvent } from 'rxjs';
 
 import { BaseEditor } from './base-editor';
 import { NGX_MONACO_EDITOR_CONFIG, NgxMonacoEditorConfig } from './config';
-import { IDisposable } from 'monaco-editor';
+import { type editor, IDisposable } from 'monaco-editor';
 import type * as monacoEditor from 'monaco-editor';
 
 declare const monaco: typeof import('monaco-editor');
@@ -28,7 +28,7 @@ declare const monaco: typeof import('monaco-editor');
 })
 export class StandaloneEditorComponent extends BaseEditor {
   value: ModelSignal<any> = model<any>('');
-  options: ModelSignal<any> = model<any>('');
+  options: ModelSignal<editor.IStandaloneEditorConstructionOptions> = model<editor.IStandaloneEditorConstructionOptions>({});
 
   isValidSyntax: ModelSignal<boolean> = model(true);
   syntaxErrors: ModelSignal<string[]> = model<string[]>([]);
@@ -44,7 +44,7 @@ export class StandaloneEditorComponent extends BaseEditor {
     effect(() => {
       const val = this.value();
       if (this._editor && !this.options().model && this._editor.getValue() !== val) {
-        this._editor.setValue(val ?? "");
+        this._editor.setValue(val ?? '');
       }
     });
 
@@ -70,33 +70,32 @@ export class StandaloneEditorComponent extends BaseEditor {
   }
 
   override ngOnDestroy() {
-    if(this.onDidChangeMarkersListener){
+    if (this.onDidChangeMarkersListener) {
       this.onDidChangeMarkersListener.dispose();
     }
     super.ngOnDestroy();
   }
 
-  protected initMonaco(options: any): void {
+  protected initMonaco(options: editor.IStandaloneEditorConstructionOptions): void {
     const hasModel = !!options.model;
 
-    if (hasModel) {
-      const model = monaco.editor.getModel(options.model.uri || '');
-      if (model) {
-        options.model = model;
-        options.model.setValue(this.value());
-      } else {
-        options.model = monaco.editor.createModel(options.model.value, options.model.language, options.model.uri);
+    if (hasModel && monaco) {
+      let providedModel = options.model;
+      if (providedModel && providedModel.uri) {
+        const model = monaco.editor.getModel(providedModel.uri);
+
+        if (model) {
+          options.model = model;
+          options.model.setValue(this.value());
+        } else {
+          options.model = monaco.editor.createModel(model ?? '');
+        }
       }
     }
 
-    let editorCreateOptions: monacoEditor.editor.IStandaloneEditorConstructionOptions = {
-      ...options,
-      ...options.options,
-    };
-
     if (this._editorContainer) {
-      console.log('Init standalone with options', editorCreateOptions);
-      this._editor = monaco.editor.create(this._editorContainer.nativeElement, editorCreateOptions);
+      console.log('Init standalone with options', options);
+      this._editor = monaco.editor.create(this._editorContainer.nativeElement, options);
     }
 
     if (!hasModel) {
@@ -122,7 +121,6 @@ export class StandaloneEditorComponent extends BaseEditor {
       const markers: Array<any> = monaco.editor.getModelMarkers({
         resource: this._editor.getModel()!.uri,
       });
-
       this.isValidSyntax.update(current => markers.length === 0);
       this.syntaxErrors.set(
         markers.map(marker => `Error: ${marker.message} at line ${marker.startLineNumber}, column ${marker.startColumn}`)
@@ -138,6 +136,7 @@ export class StandaloneEditorComponent extends BaseEditor {
       this._windowResizeSubscription.unsubscribe();
     }
     this._windowResizeSubscription = fromEvent(window, 'resize').subscribe(() => this._editor.layout());
+
     this.onInit.emit(this._editor);
   }
 }
