@@ -1,4 +1,4 @@
-import { Component, forwardRef, Inject, Input, NgZone, model, ModelSignal } from '@angular/core';
+import { Component, forwardRef, Inject, Input, model, ModelSignal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { fromEvent } from 'rxjs';
 
@@ -99,7 +99,6 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
   }
 
   constructor(
-    private zone: NgZone,
     @Inject(NGX_MONACO_EDITOR_CONFIG) private editorConfig: NgxMonacoEditorConfig
   ) {
     super(editorConfig);
@@ -158,12 +157,8 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
 
     this._editor.onDidChangeModelContent((e: any) => {
       const value = this._editor.getValue();
-
-      // value is not propagated to parent when executing outside zone.
-      this.zone.run(() => {
-        this.propagateChange(value);
-        this._value = value;
-      });
+      this._value = value;
+      this.propagateChange(value);
     });
 
     this.onDidChangeMarkersListener = monaco.editor.onDidChangeMarkers((e: any) => {

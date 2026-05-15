@@ -1,13 +1,10 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, Inject, OnDestroy, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, EventEmitter, Inject, OnDestroy, Output, ViewChild } from '@angular/core';
 import { NGX_MONACO_EDITOR_CONFIG, NgxMonacoEditorConfig } from './config';
 import { Subscription } from 'rxjs';
 import type { editor } from 'monaco-editor';
 import { ensureMonacoLoaded } from './monaco-loader';
 
-@Component({
-  template: '',
-  standalone: false,
-})
+@Directive()
 export abstract class BaseEditor implements AfterViewInit, OnDestroy {
   @ViewChild('editorContainer', { static: true }) _editorContainer: ElementRef | undefined;
   @Output() onInit = new EventEmitter<editor.IStandaloneCodeEditor>();

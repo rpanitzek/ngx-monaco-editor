@@ -21,9 +21,15 @@ declare var monaco: any;
     <div style="height: 200px">
       <ngx-monaco-editor [options]="options" [(ngModel)]="code" [(isValidSyntax)]="isValid"></ngx-monaco-editor>
     </div>
+    <div style="height: 200px">
+      <ngx-monaco-editor [options]="options" [(ngModel)]="code" [(isValidSyntax)]="isValid"></ngx-monaco-editor>
+    </div>
 
     @if (showMultiple) {
       <div style="height: 200px">
+        <div style="height: 200px">
+          <ngx-monaco-editor [options]="options" [(ngModel)]="code" [(isValidSyntax)]="isValid"></ngx-monaco-editor>
+        </div>
         <ngx-standalone-monaco-editor
           [options]="options"
           [(value)]="code"

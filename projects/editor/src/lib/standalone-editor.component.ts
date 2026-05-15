@@ -1,10 +1,9 @@
-import { Component, Inject, Input, NgZone, model, ModelSignal, effect } from '@angular/core';
+import { Component, Inject, model, ModelSignal, effect } from '@angular/core';
 import { fromEvent } from 'rxjs';
 
 import { BaseEditor } from './base-editor';
 import { NGX_MONACO_EDITOR_CONFIG, NgxMonacoEditorConfig } from './config';
 import { type editor, IDisposable } from 'monaco-editor';
-import type * as monacoEditor from 'monaco-editor';
 
 declare const monaco: typeof import('monaco-editor');
 
@@ -36,7 +35,6 @@ export class StandaloneEditorComponent extends BaseEditor {
   onDidChangeMarkersListener: IDisposable | undefined;
 
   constructor(
-    private zone: NgZone,
     @Inject(NGX_MONACO_EDITOR_CONFIG) private editorConfig: NgxMonacoEditorConfig
   ) {
     super(editorConfig);
@@ -104,11 +102,7 @@ export class StandaloneEditorComponent extends BaseEditor {
 
     this._editor.onDidChangeModelContent((e: any) => {
       const value = this._editor.getValue();
-
-      // value is not propagated to parent when executing outside zone.
-      this.zone.run(() => {
-        this.value.set(value);
-      });
+      this.value.set(value);
     });
 
     this.onDidChangeMarkersListener = monaco.editor.onDidChangeMarkers((e: any) => {
