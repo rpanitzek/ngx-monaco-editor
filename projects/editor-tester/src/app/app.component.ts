@@ -1,9 +1,12 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { DiffEditorModel, NgxEditorModel } from 'editor';
-import { MonacoEditorModule } from '../../../editor/src/lib/editor.module';
+import {
+  DiffEditorModel,
+  MonacoEditorModule,
+  NgxEditorModel,
+  StandaloneEditorComponent,
+} from '../../../editor/src/public-api';
 import { FormsModule } from '@angular/forms';
 import { JsonPipe } from '@angular/common';
-import { StandaloneEditorComponent } from '../../../editor/src/lib/standalone-editor.component';
 import type { editor } from 'monaco-editor';
 
 declare var monaco: any;
@@ -21,15 +24,9 @@ declare var monaco: any;
     <div style="height: 200px">
       <ngx-monaco-editor [options]="options" [(ngModel)]="code" [(isValidSyntax)]="isValid"></ngx-monaco-editor>
     </div>
-    <div style="height: 200px">
-      <ngx-monaco-editor [options]="options" [(ngModel)]="code" [(isValidSyntax)]="isValid"></ngx-monaco-editor>
-    </div>
 
     @if (showMultiple) {
       <div style="height: 200px">
-        <div style="height: 200px">
-          <ngx-monaco-editor [options]="options" [(ngModel)]="code" [(isValidSyntax)]="isValid"></ngx-monaco-editor>
-        </div>
         <ngx-standalone-monaco-editor
           [options]="options"
           [(value)]="code"

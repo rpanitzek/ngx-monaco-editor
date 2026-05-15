@@ -11,14 +11,6 @@ import { EditorComponent } from './editor.component';
   exports: [EditorComponent, DiffEditorComponent],
 })
 export class MonacoEditorModule {
-
-  constructor() {
-    (self as any).MonacoEnvironment = {
-      getWorkerUrl: function (moduleId: string, label: string) {
-        return `assets/monaco-editor/min/vs/base/worker/workerMain.js`;
-      },
-    };
-  }
   public static forRoot(config: NgxMonacoEditorConfig = {}): ModuleWithProviders<MonacoEditorModule> {
     return {
       ngModule: MonacoEditorModule,

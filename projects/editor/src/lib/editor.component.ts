@@ -1,4 +1,4 @@
-import { Component, forwardRef, Inject, Input, model, ModelSignal } from '@angular/core';
+import { Component, forwardRef, Inject, Input, model as ngModel, ModelSignal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { fromEvent } from 'rxjs';
 
@@ -41,8 +41,8 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
   propagateChange = (_: any) => {};
   onTouched = () => {};
 
-  isValidSyntax: ModelSignal<boolean> = model(true);
-  syntaxErrors: ModelSignal<string[]> = model<string[]>([]);
+  isValidSyntax: ModelSignal<boolean> = ngModel(true);
+  syntaxErrors: ModelSignal<string[]> = ngModel<string[]>([]);
 
   onDidChangeMarkersListener: IDisposable | undefined;
 
@@ -53,9 +53,6 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
     if (this._editor) {
       const mergedOptions = Object.assign({}, this.config.defaultOptions, options);
 
-      console.log('change-options', mergedOptions);
-
-      // Update editor dynamically
       this._editor.updateOptions(mergedOptions);
 
       // You can update language/model separately if needed
@@ -147,7 +144,6 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
     }
 
     if (this._editorContainer) {
-      console.log('Init with options', options);
       this._editor = monaco.editor.create(this._editorContainer.nativeElement, options);
     }
 

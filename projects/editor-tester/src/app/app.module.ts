@@ -1,4 +1,4 @@
-import { NgxMonacoEditorConfig } from 'editor';
+import { NgxMonacoEditorConfig } from '../../../editor/src/public-api';
 
 declare var monaco: any;
 

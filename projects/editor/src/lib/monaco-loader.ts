@@ -1,19 +1,30 @@
-﻿// monaco-loader.ts
+// monaco-loader.ts
 import { NgxMonacoEditorConfig } from './config';
 
-let loadedMonaco = false;
 let loadPromise: Promise<void> | null = null;
 
+function resolveBaseUrl(config: NgxMonacoEditorConfig): string {
+  return (config.baseUrl || './assets') + '/monaco-editor/min/vs';
+}
+
+function configureMonacoEnvironment(config: NgxMonacoEditorConfig): void {
+  const baseUrl = resolveBaseUrl(config);
+  (self as any).MonacoEnvironment = {
+    getWorkerUrl: (_moduleId: string, _label: string) =>
+      `${baseUrl}/base/worker/workerMain.js`,
+  };
+}
+
 export function ensureMonacoLoaded(config: NgxMonacoEditorConfig): Promise<void> {
-  if (loadedMonaco && loadPromise) {
+  if (loadPromise) {
     return loadPromise;
   }
 
-  loadedMonaco = true;
-
   loadPromise = new Promise<void>((resolve) => {
     const win = window as any;
-    const baseUrl = (config.baseUrl || './assets') + '/monaco-editor/min/vs';
+    const baseUrl = resolveBaseUrl(config);
+
+    configureMonacoEnvironment(config);
 
     // Already loaded
     if (typeof win.monaco === 'object') {

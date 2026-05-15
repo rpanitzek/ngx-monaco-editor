@@ -53,9 +53,6 @@ export class StandaloneEditorComponent extends BaseEditor {
         if (this._editor) {
           const mergedOptions = Object.assign({}, this.config.defaultOptions, options);
 
-          console.log('options changed', mergedOptions);
-
-          // Update editor dynamically
           this._editor.updateOptions(mergedOptions);
 
           // You can update language/model separately if needed
@@ -92,7 +89,6 @@ export class StandaloneEditorComponent extends BaseEditor {
     }
 
     if (this._editorContainer) {
-      console.log('Init standalone with options', options);
       this._editor = monaco.editor.create(this._editorContainer.nativeElement, options);
     }
 

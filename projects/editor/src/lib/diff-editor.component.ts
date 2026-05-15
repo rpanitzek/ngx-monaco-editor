@@ -6,7 +6,7 @@ import { DiffEditorModel } from './types';
 import { BaseDiffEditor } from './base-diff-editor';
 import type { editor } from 'monaco-editor';
 
-declare let monaco: any;
+declare const monaco: typeof import('monaco-editor');
 
 @Component({
     selector: 'ngx-monaco-diff-editor',
