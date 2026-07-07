@@ -7,4 +7,3 @@ export interface NgxEditorModel {
   language?: string;
   uri?: any;
 }
-

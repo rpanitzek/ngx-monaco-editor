@@ -1,4 +1,4 @@
-import { Component, Inject, model, ModelSignal, effect } from '@angular/core';
+import { Component, Inject, model, ModelSignal, effect, ChangeDetectionStrategy } from '@angular/core';
 import { fromEvent } from 'rxjs';
 
 import { BaseEditor } from './base-editor';
@@ -11,6 +11,7 @@ declare const monaco: typeof import('monaco-editor');
   standalone: true,
   selector: 'ngx-standalone-monaco-editor',
   template: '<div class="editor-container" #editorContainer></div>',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       :host {
@@ -34,9 +35,7 @@ export class StandaloneEditorComponent extends BaseEditor {
 
   onDidChangeMarkersListener: IDisposable | undefined;
 
-  constructor(
-    @Inject(NGX_MONACO_EDITOR_CONFIG) private editorConfig: NgxMonacoEditorConfig
-  ) {
+  constructor(@Inject(NGX_MONACO_EDITOR_CONFIG) private editorConfig: NgxMonacoEditorConfig) {
     super(editorConfig);
 
     effect(() => {
@@ -75,7 +74,7 @@ export class StandaloneEditorComponent extends BaseEditor {
     const hasModel = !!options.model;
 
     if (hasModel && monaco) {
-      let providedModel = options.model;
+      const providedModel = options.model;
       if (providedModel && providedModel.uri) {
         const model = monaco.editor.getModel(providedModel.uri);
 
@@ -108,7 +107,7 @@ export class StandaloneEditorComponent extends BaseEditor {
         return;
       }
 
-      const markers: Array<any> = monaco.editor.getModelMarkers({
+      const markers: any[] = monaco.editor.getModelMarkers({
         resource: this._editor.getModel()!.uri,
       });
       this.isValidSyntax.update(current => markers.length === 0);

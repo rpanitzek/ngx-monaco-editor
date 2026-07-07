@@ -4,14 +4,10 @@ export const NGX_MONACO_EDITOR_CONFIG = new InjectionToken<NgxMonacoEditorConfig
 
 export interface NgxMonacoEditorConfig {
   baseUrl?: string;
-  defaultOptions?: { [key: string]: any };
+  defaultOptions?: Record<string, any>;
   onMonacoLoad?: Function;
 }
 
-export function provideMonacoEditor(
-  config: NgxMonacoEditorConfig = {}
-): EnvironmentProviders {
-  return makeEnvironmentProviders([
-    { provide: NGX_MONACO_EDITOR_CONFIG, useValue: config },
-  ]);
+export function provideMonacoEditor(config: NgxMonacoEditorConfig = {}): EnvironmentProviders {
+  return makeEnvironmentProviders([{ provide: NGX_MONACO_EDITOR_CONFIG, useValue: config }]);
 }

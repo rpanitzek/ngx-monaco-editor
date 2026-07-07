@@ -1,4 +1,4 @@
-import { Component, forwardRef, Inject, Input, model as ngModel, ModelSignal } from '@angular/core';
+import { Component, forwardRef, Inject, Input, model as ngModel, ModelSignal, ChangeDetectionStrategy } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { fromEvent } from 'rxjs';
 
@@ -27,6 +27,7 @@ declare const monaco: typeof import('monaco-editor');
       }
     `,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -36,7 +37,7 @@ declare const monaco: typeof import('monaco-editor');
   ],
 })
 export class EditorComponent extends BaseEditor implements ControlValueAccessor {
-  private _value: string = '';
+  private _value = '';
 
   propagateChange = (_: any) => {};
   onTouched = () => {};
@@ -95,9 +96,7 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
     }
   }
 
-  constructor(
-    @Inject(NGX_MONACO_EDITOR_CONFIG) private editorConfig: NgxMonacoEditorConfig
-  ) {
+  constructor(@Inject(NGX_MONACO_EDITOR_CONFIG) private editorConfig: NgxMonacoEditorConfig) {
     super(editorConfig);
   }
 
@@ -120,7 +119,7 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
   }
 
   override ngOnDestroy() {
-    if(this.onDidChangeMarkersListener){
+    if (this.onDidChangeMarkersListener) {
       this.onDidChangeMarkersListener.dispose();
     }
     super.ngOnDestroy();
@@ -130,8 +129,8 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
     const hasModel = !!options.model;
 
     if (hasModel && monaco) {
-      let providedModel = options.model;
-      if(providedModel && providedModel.uri){
+      const providedModel = options.model;
+      if (providedModel && providedModel.uri) {
         const model = monaco.editor.getModel(providedModel.uri);
 
         if (model) {
@@ -164,7 +163,7 @@ export class EditorComponent extends BaseEditor implements ControlValueAccessor 
         return;
       }
 
-      const markers: Array<any> = monaco.editor.getModelMarkers({ resource: this._editor.getModel()!.uri });
+      const markers: any[] = monaco.editor.getModelMarkers({ resource: this._editor.getModel()!.uri });
       this.isValidSyntax.update(current => markers.length === 0);
       this.syntaxErrors.set(
         markers.map(marker => `Error: ${marker.message} at line ${marker.startLineNumber}, column ${marker.startColumn}`)

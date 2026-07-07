@@ -1,4 +1,4 @@
-import { Component, Inject, Input } from '@angular/core';
+import { Component, Inject, Input, ChangeDetectionStrategy } from '@angular/core';
 import { fromEvent } from 'rxjs';
 
 import { NGX_MONACO_EDITOR_CONFIG, NgxMonacoEditorConfig } from './config';
@@ -9,10 +9,10 @@ import type { editor } from 'monaco-editor';
 declare const monaco: typeof import('monaco-editor');
 
 @Component({
-    selector: 'ngx-monaco-diff-editor',
-    template: '<div class="editor-container" #editorContainer></div>',
-    styles: [
-        `
+  selector: 'ngx-monaco-diff-editor',
+  template: '<div class="editor-container" #editorContainer></div>',
+  styles: [
+    `
       :host {
         display: block;
         height: 200px;
@@ -23,12 +23,13 @@ declare const monaco: typeof import('monaco-editor');
         height: 98%;
       }
     `,
-    ],
-    standalone: false
+  ],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class DiffEditorComponent extends BaseDiffEditor {
   _originalModel: DiffEditorModel | undefined;
-  _modifiedModel: DiffEditorModel  | undefined;
+  _modifiedModel: DiffEditorModel | undefined;
 
   @Input()
   set options(options: any) {

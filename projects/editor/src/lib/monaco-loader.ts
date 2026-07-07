@@ -10,8 +10,7 @@ function resolveBaseUrl(config: NgxMonacoEditorConfig): string {
 function configureMonacoEnvironment(config: NgxMonacoEditorConfig): void {
   const baseUrl = resolveBaseUrl(config);
   (self as any).MonacoEnvironment = {
-    getWorkerUrl: (_moduleId: string, _label: string) =>
-      `${baseUrl}/base/worker/workerMain.js`,
+    getWorkerUrl: (_moduleId: string, _label: string) => `${baseUrl}/base/worker/workerMain.js`,
   };
 }
 
@@ -20,7 +19,7 @@ export function ensureMonacoLoaded(config: NgxMonacoEditorConfig): Promise<void>
     return loadPromise;
   }
 
-  loadPromise = new Promise<void>((resolve) => {
+  loadPromise = new Promise<void>(resolve => {
     const win = window as any;
     const baseUrl = resolveBaseUrl(config);
 

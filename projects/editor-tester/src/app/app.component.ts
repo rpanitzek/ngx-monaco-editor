@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import {
   DiffEditorModel,
   MonacoEditorModule,
@@ -9,7 +9,7 @@ import { FormsModule } from '@angular/forms';
 import { JsonPipe } from '@angular/common';
 import type { editor } from 'monaco-editor';
 
-declare var monaco: any;
+declare let monaco: any;
 
 @Component({
   selector: 'app-root',
@@ -48,6 +48,7 @@ declare var monaco: any;
   `,
   styles: [],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [MonacoEditorModule, StandaloneEditorComponent, FormsModule, JsonPipe],
 })
 export class AppComponent implements OnInit {
