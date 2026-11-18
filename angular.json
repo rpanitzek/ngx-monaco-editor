@@ -28,8 +28,8 @@
               "projects/editor-tester/src/assets",
               {
                 "glob": "**/*",
-                "input": "node_modules/monaco-editor",
-                "output": "assets/monaco-editor"
+                "input": "node_modules/monaco-editor/min",
+                "output": "assets/monaco-editor/min"
               }
             ],
             "styles": ["projects/editor-tester/src/styles.css"],
@@ -98,7 +98,6 @@
             "tsConfig": "projects/editor-tester/tsconfig.spec.json",
             "reporters": ["default"],
             "coverageReporters": ["html", "text-summary"],
-            "setupFiles": ["projects/editor-tester/src/test.ts"],
             "buildTarget": ":build:testing",
             "runner": "vitest"
           }
@@ -127,11 +126,12 @@
           "defaultConfiguration": "production"
         },
         "test": {
-          "builder": "@angular/build:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "main": "projects/editor/src/test.ts",
+            "buildTarget": "::development",
             "tsConfig": "projects/editor/tsconfig.spec.json",
-            "karmaConfig": "projects/editor/karma.conf.js"
+            "runner": "vitest",
+            "isolate": true
           }
         },
         "lint": {

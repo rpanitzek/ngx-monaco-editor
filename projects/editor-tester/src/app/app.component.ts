@@ -1,42 +1,67 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { form, FormField, disabled } from '@angular/forms/signals';
+import { JsonPipe } from '@angular/common';
+import type { editor } from 'monaco-editor';
 import {
+  DiffEditorComponent,
   DiffEditorModel,
-  MonacoEditorModule,
+  EditorComponent,
   NgxEditorModel,
   StandaloneEditorComponent,
 } from '../../../editor/src/public-api';
-import { FormsModule } from '@angular/forms';
-import { JsonPipe } from '@angular/common';
-import type { editor } from 'monaco-editor';
 
-declare let monaco: any;
+declare const monaco: typeof import('monaco-editor');
 
 @Component({
   selector: 'app-root',
   template: `
     <h1>Editor (Valid Syntax {{ isValid }})</h1>
     <button (click)="updateOptions()">Change Language</button>
-    <button (click)="code = ''; codeInput = ''">Set Value To Empty String</button>
-    <button (click)="code = null; codeInput = null">Set Value To Null</button>
-    <button (click)="code = undefined; codeInput = undefined">Set Value To undefined</button>
+    <button (click)="code = ''">Set Value To Empty String</button>
+    <button (click)="code = null">Set Value To Null</button>
+    <button (click)="code = undefined">Set Value To undefined</button>
     <button (click)="showMultiple = !showMultiple">{{ showMultiple ? 'Hide' : 'Show' }} Multiple Editor</button>
 
     <div style="height: 200px">
-      <ngx-monaco-editor [options]="options" [(ngModel)]="code" [(isValidSyntax)]="isValid"></ngx-monaco-editor>
+      <ngx-monaco-editor [options]="options" [(ngModel)]="code" (isValidSyntaxChange)="isValid = $event"></ngx-monaco-editor>
     </div>
 
     @if (showMultiple) {
       <div style="height: 200px">
         <ngx-standalone-monaco-editor
           [options]="options"
-          [(value)]="code"
-          (valueChange)="valueChanged($event)"
+          [value]="code ?? ''"
+          (valueChange)="code = $event"
           (onInit)="onInit($event)"
-          [(isValidSyntax)]="isValid"></ngx-standalone-monaco-editor>
+          (isValidSyntaxChange)="isValid = $event"></ngx-standalone-monaco-editor>
       </div>
     }
 
     <pre>{{ code | json }}</pre>
+
+    <h1>JSON Model With Schema</h1>
+    <p>Schema violations are warnings, so they don't make the syntax invalid. Syntax errors do.</p>
+    @if (jsonModel) {
+      <ngx-monaco-editor
+        [model]="jsonModel"
+        [(ngModel)]="json"
+        (isValidSyntaxChange)="jsonValid = $event"
+        (syntaxErrorsChange)="jsonErrors = $event"></ngx-monaco-editor>
+      <p>Valid syntax: {{ jsonValid }}</p>
+      <pre>{{ jsonErrors | json }}</pre>
+    } @else {
+      <p>Click "Show Multiple Editor" to create the JSON model.</p>
+    }
+
+    <h1>Signal Forms</h1>
+    <button (click)="locked.set(!locked())">{{ locked() ? 'Unlock' : 'Lock' }}</button>
+    <ngx-standalone-monaco-editor [options]="options" [formField]="snippetForm.code"></ngx-standalone-monaco-editor>
+    <p>
+      touched: {{ snippetForm.code().touched() }}, dirty: {{ snippetForm.code().dirty() }}, disabled:
+      {{ snippetForm.code().disabled() }}
+    </p>
+    <pre>{{ snippet() | json }}</pre>
 
     <h1>Diff Editor</h1>
     <button (click)="updateDiffModel()">Update Models</button>
@@ -46,15 +71,11 @@ declare let monaco: any;
       [modifiedModel]="modifiedModel"
       (onInit)="onInitDiffEditor($event)"></ngx-monaco-diff-editor>
   `,
-  styles: [],
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [MonacoEditorModule, StandaloneEditorComponent, FormsModule, JsonPipe],
+  imports: [EditorComponent, StandaloneEditorComponent, DiffEditorComponent, FormsModule, FormField, JsonPipe],
 })
 export class AppComponent implements OnInit {
-  codeInput: string | null | undefined = 'Sample Code';
-  editor: any;
-  diffEditor: any;
+  editor: editor.IStandaloneCodeEditor | undefined;
+  diffEditor: editor.IStandaloneDiffEditor | undefined;
   showMultiple = false;
   toggleLanguage = true;
   options: editor.IStandaloneEditorConstructionOptions = {
@@ -66,7 +87,7 @@ export class AppComponent implements OnInit {
   color: red;
 }`;
   jsCode = `function hello() {
-	 alert('Hello world!');
+	alert('Hello world!');
 }`;
 
   originalModel: DiffEditorModel = {
@@ -80,20 +101,21 @@ export class AppComponent implements OnInit {
   };
 
   jsonCode = ['{', '    "p1": "v3",', '    "p2": false', '}'].join('\n');
+  jsonModel: NgxEditorModel | undefined;
+  json = '';
+  jsonValid = true;
+  jsonErrors: string[] = [];
 
-  model: NgxEditorModel = {
-    value: this.jsonCode,
-    language: 'json',
-  };
+  isValid = true;
 
-  isValid = false;
+  readonly locked = signal(false);
+  readonly snippet = signal({ code: '<p>Edit me</p>' });
+  readonly snippetForm = form(this.snippet, path => {
+    disabled(path.code, { when: () => this.locked() });
+  });
 
   ngOnInit() {
     this.updateOptions();
-  }
-
-  valueChanged(event: string): void {
-    //console.log('valueChanged', event);
   }
 
   updateOptions() {
@@ -112,22 +134,17 @@ export class AppComponent implements OnInit {
     this.modifiedModel = Object.assign({}, this.originalModel, { code: 'ABCD ef' });
   }
 
-  onInit(editor: any) {
-    this.editor = editor;
-    this.model = {
+  onInit(codeEditor: editor.IStandaloneCodeEditor) {
+    this.editor = codeEditor;
+    // The schema registered in onMonacoLoad matches this URI.
+    this.jsonModel = {
       value: this.jsonCode,
       language: 'json',
       uri: monaco.Uri.parse('a://b/foo.json'),
     };
-    // let line = editor.getPosition();
-    // let range = new monaco.Range(line.lineNumber, 1, line.lineNumber, 1);
-    // let id = { major: 1, minor: 1 };
-    // let text = 'FOO';
-    // let op = { identifier: id, range: range, text: text, forceMoveMarkers: true };
-    // editor.executeEdits("my-source", [op]);
   }
 
-  onInitDiffEditor(editor: any) {
-    this.diffEditor = editor;
+  onInitDiffEditor(diffEditor: editor.IStandaloneDiffEditor) {
+    this.diffEditor = diffEditor;
   }
 }

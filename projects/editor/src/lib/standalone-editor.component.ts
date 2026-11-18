@@ -1,131 +1,57 @@
-import { Component, Inject, model, ModelSignal, effect, ChangeDetectionStrategy } from '@angular/core';
-import { fromEvent } from 'rxjs';
+import { booleanAttribute, Component, effect, input, model, output } from '@angular/core';
+import type { FormValueControl } from '@angular/forms/signals';
 
 import { BaseEditor } from './base-editor';
-import { NGX_MONACO_EDITOR_CONFIG, NgxMonacoEditorConfig } from './config';
-import { type editor, IDisposable } from 'monaco-editor';
 
-declare const monaco: typeof import('monaco-editor');
-
+/** Signal-based code editor. Bind `[(value)]`, or a Signal Forms field with `[formField]`. */
 @Component({
-  standalone: true,
   selector: 'ngx-standalone-monaco-editor',
   template: '<div class="editor-container" #editorContainer></div>',
-  changeDetection: ChangeDetectionStrategy.Eager,
-  styles: [
-    `
-      :host {
-        display: block;
-        height: 200px;
-      }
-
-      .editor-container {
-        width: 100%;
-        height: 98%;
-      }
-    `,
-  ],
+  styleUrl: './editor.css',
 })
-export class StandaloneEditorComponent extends BaseEditor {
-  value: ModelSignal<any> = model<any>('');
-  options: ModelSignal<editor.IStandaloneEditorConstructionOptions> = model<editor.IStandaloneEditorConstructionOptions>({});
+export class StandaloneEditorComponent extends BaseEditor implements FormValueControl<string> {
+  /** The editor content. Ignored while a model is supplied through `options.model`. */
+  readonly value = model('');
 
-  isValidSyntax: ModelSignal<boolean> = model(true);
-  syntaxErrors: ModelSignal<string[]> = model<string[]>([]);
+  /** Makes the editor read-only. Bound automatically by `[formField]`. */
+  readonly disabled = input(false, { transform: booleanAttribute });
 
-  onDidChangeMarkersListener: IDisposable | undefined;
+  /** Makes the editor read-only. Bound automatically by `[formField]`. */
+  readonly readonly = input(false, { transform: booleanAttribute });
 
-  constructor(@Inject(NGX_MONACO_EDITOR_CONFIG) private editorConfig: NgxMonacoEditorConfig) {
-    super(editorConfig);
+  /** Emits when the editor loses focus, which marks a `[formField]` as touched. */
+  readonly touch = output<void>();
 
-    effect(() => {
-      const val = this.value();
-      if (this._editor && !this.options().model && this._editor.getValue() !== val) {
-        this._editor.setValue(val ?? '');
-      }
-    });
+  constructor() {
+    super();
 
     effect(() => {
-      const options = this.options();
-      if (options) {
-        this._options = Object.assign({}, this.config.defaultOptions, options);
-        if (this._editor) {
-          const mergedOptions = Object.assign({}, this.config.defaultOptions, options);
-
-          this._editor.updateOptions(mergedOptions);
-
-          // You can update language/model separately if needed
-          if (options.model && this._editor.getModel() !== options.model) {
-            this._editor.setModel(options.model);
-          }
-        }
+      const value = this.value() ?? '';
+      const codeEditor = this.editor();
+      if (codeEditor && !this.modelSource() && codeEditor.getValue() !== value) {
+        codeEditor.setValue(value);
       }
     });
   }
 
-  override ngOnDestroy() {
-    if (this.onDidChangeMarkersListener) {
-      this.onDidChangeMarkersListener.dispose();
-    }
-    super.ngOnDestroy();
+  /** Focuses the editor. Signal Forms calls this, for example to focus the first invalid field. */
+  focus(): void {
+    this.editor()?.focus();
   }
 
-  protected initMonaco(options: editor.IStandaloneEditorConstructionOptions): void {
-    const hasModel = !!options.model;
+  protected override currentValue(): string {
+    return this.value() ?? '';
+  }
 
-    if (hasModel && monaco) {
-      const providedModel = options.model;
-      if (providedModel && providedModel.uri) {
-        const model = monaco.editor.getModel(providedModel.uri);
+  protected override onValueChange(value: string): void {
+    this.value.set(value);
+  }
 
-        if (model) {
-          options.model = model;
-          options.model.setValue(this.value());
-        } else {
-          options.model = monaco.editor.createModel(model ?? '');
-        }
-      }
-    }
+  protected override onBlur(): void {
+    this.touch.emit();
+  }
 
-    if (this._editorContainer) {
-      this._editor = monaco.editor.create(this._editorContainer.nativeElement, options);
-    }
-
-    if (!hasModel) {
-      this._editor.setValue(this.value());
-    }
-
-    this._editor.onDidChangeModelContent((e: any) => {
-      const value = this._editor.getValue();
-      this.value.set(value);
-    });
-
-    this.onDidChangeMarkersListener = monaco.editor.onDidChangeMarkers((e: any) => {
-      if (!this._editor || !this._editor.getModel()) {
-        this.isValidSyntax.update(() => false); // or true, depending on your desired fallback behavior
-        this.syntaxErrors.set(['Editor is not initialized.']);
-        return;
-      }
-
-      const markers: any[] = monaco.editor.getModelMarkers({
-        resource: this._editor.getModel()!.uri,
-      });
-      this.isValidSyntax.update(current => markers.length === 0);
-      this.syntaxErrors.set(
-        markers.map(marker => `Error: ${marker.message} at line ${marker.startLineNumber}, column ${marker.startColumn}`)
-      );
-    });
-
-    this._editor.onDidBlurEditorWidget(() => {
-      //this.onTouched();
-    });
-
-    // refresh layout on resize event.
-    if (this._windowResizeSubscription) {
-      this._windowResizeSubscription.unsubscribe();
-    }
-    this._windowResizeSubscription = fromEvent(window, 'resize').subscribe(() => this._editor.layout());
-
-    this.onInit.emit(this._editor);
+  protected override isReadOnly(): boolean {
+    return this.disabled() || this.readonly();
   }
 }

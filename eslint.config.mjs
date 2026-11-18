@@ -36,7 +36,8 @@ export default defineConfig([
         'error',
         {
           type: 'attribute',
-          prefix: 'app',
+          // `app` for the demo, `ngx` for the library.
+          prefix: ['app', 'ngx'],
           style: 'camelCase',
         },
       ],
@@ -45,7 +46,7 @@ export default defineConfig([
         'error',
         {
           type: 'element',
-          prefix: 'app',
+          prefix: ['app', 'ngx'],
           style: 'kebab-case',
         },
       ],

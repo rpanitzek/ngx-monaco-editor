@@ -1,97 +1,76 @@
-import { Component, Inject, Input, ChangeDetectionStrategy } from '@angular/core';
-import { fromEvent } from 'rxjs';
-
-import { NGX_MONACO_EDITOR_CONFIG, NgxMonacoEditorConfig } from './config';
-import { DiffEditorModel } from './types';
-import { BaseDiffEditor } from './base-diff-editor';
+import { Component, computed, effect, input } from '@angular/core';
 import type { editor } from 'monaco-editor';
 
+import { MonacoEditorBase } from './monaco-editor-base';
+import { DiffEditorModel } from './types';
+
 declare const monaco: typeof import('monaco-editor');
+
+/** Diff editor options. `language` is the fallback for models without one. */
+export type DiffEditorOptions = editor.IStandaloneDiffEditorConstructionOptions & { language?: string };
 
 @Component({
   selector: 'ngx-monaco-diff-editor',
   template: '<div class="editor-container" #editorContainer></div>',
-  styles: [
-    `
-      :host {
-        display: block;
-        height: 200px;
-      }
-
-      .editor-container {
-        width: 100%;
-        height: 98%;
-      }
-    `,
-  ],
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false,
+  styleUrl: './editor.css',
 })
-export class DiffEditorComponent extends BaseDiffEditor {
-  _originalModel: DiffEditorModel | undefined;
-  _modifiedModel: DiffEditorModel | undefined;
+export class DiffEditorComponent extends MonacoEditorBase<editor.IStandaloneDiffEditor> {
+  /** Diff editor options, merged over the configured `defaultOptions`. */
+  readonly options = input<DiffEditorOptions>({});
+  readonly originalModel = input.required<DiffEditorModel>();
+  readonly modifiedModel = input.required<DiffEditorModel>();
 
-  @Input()
-  set options(options: any) {
-    this._options = Object.assign({}, this.config.defaultOptions, options);
-    if (this._editor) {
-      this._editor.dispose();
-      this.initMonaco(options);
-    }
-  }
+  private readonly mergedOptions = computed<DiffEditorOptions>(() => ({ ...this.config.defaultOptions, ...this.options() }));
 
-  get options(): any {
-    return this._options;
-  }
+  /** Text models created once by this component and updated in place. Monaco doesn't dispose them, so this component does. */
+  private textModels: editor.IDiffEditorModel | undefined;
 
-  @Input()
-  set originalModel(model: DiffEditorModel) {
-    this._originalModel = model;
-    if (this._editor) {
-      this._editor.dispose();
-      this.initMonaco(this.options);
-    }
-  }
+  constructor() {
+    super();
 
-  @Input()
-  set modifiedModel(model: DiffEditorModel) {
-    this._modifiedModel = model;
-    if (this._editor) {
-      this._editor.dispose();
-      this.initMonaco(this.options);
-    }
-  }
+    effect(() => this.editor()?.updateOptions(this.mergedOptions()));
 
-  constructor(@Inject(NGX_MONACO_EDITOR_CONFIG) private editorConfig: NgxMonacoEditorConfig) {
-    super(editorConfig);
-  }
-
-  protected initMonaco(options: editor.IStandaloneDiffEditorConstructionOptions | any): void {
-    if (!this._originalModel || !this._modifiedModel) {
-      throw new Error('originalModel or modifiedModel not found for ngx-monaco-diff-editor');
-    }
-
-    this._originalModel.language = this._originalModel.language || options.language;
-    this._modifiedModel.language = this._modifiedModel.language || options.language;
-
-    const originalModel = monaco.editor.createModel(this._originalModel.code, this._originalModel.language);
-    const modifiedModel = monaco.editor.createModel(this._modifiedModel.code, this._modifiedModel.language);
-
-    if (this._editorContainer) {
-      this._editorContainer.nativeElement.innerHTML = '';
-      this._editor = monaco.editor.createDiffEditor(this._editorContainer.nativeElement, options);
-    }
-
-    this._editor.setModel({
-      original: originalModel,
-      modified: modifiedModel,
+    effect(() => {
+      const original = this.originalModel();
+      const modified = this.modifiedModel();
+      const fallbackLanguage = this.mergedOptions().language;
+      if (!this.editor() || !this.textModels) {
+        return;
+      }
+      // Update in place: swapping in new models and disposing the old ones breaks diff requests still running in the
+      // worker ("no diff result available").
+      syncTextModel(this.textModels.original, original, fallbackLanguage);
+      syncTextModel(this.textModels.modified, modified, fallbackLanguage);
     });
+  }
 
-    // refresh layout on resize event.
-    if (this._windowResizeSubscription) {
-      this._windowResizeSubscription.unsubscribe();
-    }
-    this._windowResizeSubscription = fromEvent(window, 'resize').subscribe(() => this._editor.layout());
-    this.onInit.emit(this._editor);
+  protected createEditor(container: HTMLElement): editor.IStandaloneDiffEditor {
+    const options = this.mergedOptions();
+    const original = this.originalModel();
+    const modified = this.modifiedModel();
+    this.textModels = {
+      original: monaco.editor.createModel(original.code, original.language || options.language),
+      modified: monaco.editor.createModel(modified.code, modified.language || options.language),
+    };
+
+    const diffEditor = monaco.editor.createDiffEditor(container, options);
+    diffEditor.setModel(this.textModels);
+    return diffEditor;
+  }
+
+  protected override onEditorDisposed(): void {
+    this.textModels?.original.dispose();
+    this.textModels?.modified.dispose();
+    this.textModels = undefined;
+  }
+}
+
+function syncTextModel(textModel: editor.ITextModel, model: DiffEditorModel, fallbackLanguage: string | undefined): void {
+  const language = model.language || fallbackLanguage;
+  if (language && textModel.getLanguageId() !== language) {
+    monaco.editor.setModelLanguage(textModel, language);
+  }
+  if (textModel.getValue() !== model.code) {
+    textModel.setValue(model.code);
   }
 }

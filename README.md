@@ -1,299 +1,202 @@
-# Monaco Editor Component for Angular 2 and above.
+# ngx-monaco-editor
 
- - Angular 16.x.x
+The [Monaco Editor](https://github.com/microsoft/monaco-editor) as Angular components: a code editor for forms (`ngModel`, `formControl`), a signal-based code editor that works with Signal Forms, and a diff editor.
 
-Using this Module you can utilize the Monaco Editor as an Angular Component. Feel free to contribute, raise feature requests and make it better.
+| `@rolandp_86/ngx-monaco-editor` | Angular | `monaco-editor` |
+| ------------------------------- | ------- | --------------- |
+| 23.x                            | 22.x    | ^0.57.0         |
+| 22.x                            | 22.x    | ^0.57.0         |
 
-Supports all the options available in monaco-editor [Monaco Editor Options](https://microsoft.github.io/monaco-editor/api/interfaces/monaco.editor.ieditorconstructionoptions.html)
+Up to 22.x, the package version followed the Angular major version. 23.0.0 breaks that rule because it contains breaking API changes for Angular 22 (see [Migrating to 23.0.0](#migrating-to-2300)).
+
+## Installation
+
+```bash
+npm install @rolandp_86/ngx-monaco-editor monaco-editor
+```
+
+Monaco is loaded at runtime from your app's assets, not bundled. Copy its `min` build in `angular.json` (`projects.<app>.architect.build.options.assets`):
+
+```json
+{ "glob": "**/*", "input": "node_modules/monaco-editor/min", "output": "assets/monaco-editor/min" }
+```
+
+Copy only `min`: the full package is about 100 MB, of which only the 25 MB in `min` are loaded.
 
 ## Setup
 
-### Installation
+Configuration is optional. In a standalone app:
 
-Install from npm repository:
-```
-npm install monaco-editor ngx-monaco-editor --save
- ```
- 
-For angular version 6 use v6.x.x
-```
-npm install ngx-monaco-editor@6.0.0 --save
- ```
- 
-Add the glob to assets in `.angular-cli.json` schema - `projects.[project-name].architect.build` (to make monaco-editor lib available to the app):
-```typescript
-{
-  "options": {
-    {
-      "assets": [
-        { "glob": "**/*", "input": "node_modules/monaco-editor", "output": "assets/monaco-editor" }
-      ],
-      ...
-    }
-    ...
-  },
-  ...
-}
- ```
+```ts
+import { provideMonacoEditor } from '@rolandp_86/ngx-monaco-editor';
 
-
-For Angular 6 and below, add the glob to assets in `angular.json`
-```typescript
-{
-  "apps": [
-    {
-      "assets": [
-        { "glob": "**/*", "input": "../node_modules/ngx-monaco-editor/assets/monaco", "output": "./assets/monaco/" }
-      ],
-      ...
-    }
-    ...
-  ],
-  ...
-}
- ```
-
-### Sample
-Include MonacoEditorModule in Main Module and Feature Modules where you want to use the editor component.(eg: app.module.ts): 
-```typescript
-import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-
-import { AppComponent } from './app.component';
-import { MonacoEditorModule } from 'ngx-monaco-editor';
-
-@NgModule({
-  declarations: [
-    AppComponent
-  ],
-  imports: [
-    BrowserModule,
-    FormsModule,
-    MonacoEditorModule.forRoot() // use forRoot() in main app module only.
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
-})
-export class AppModule {
-}
+bootstrapApplication(AppComponent, {
+  providers: [provideMonacoEditor({ defaultOptions: { scrollBeyondLastLine: false } })],
+});
 ```
 
-Create Editor options in component.(eg: app.component.ts)
-```typescript
-import { Component } from '@angular/core';
+In an NgModule app, import `MonacoEditorModule.forRoot(config)` once in the root module and `MonacoEditorModule` in feature modules.
+
+## Code editor for forms: `ngx-monaco-editor`
+
+`EditorComponent` is a `ControlValueAccessor`, so it works with `ngModel` and reactive forms. A disabled control makes the editor read-only.
+
+```ts
+import { EditorComponent } from '@rolandp_86/ngx-monaco-editor';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html'
+  imports: [EditorComponent, FormsModule],
+  template: `<ngx-monaco-editor [options]="options" [(ngModel)]="code" (isValidSyntaxChange)="valid = $event" />`,
 })
-export class AppComponent {
-  editorOptions = {theme: 'vs-dark', language: 'javascript'};
-  code: string= 'function x() {\nconsole.log("Hello world!");\n}';
+export class CodeComponent {
+  options = { theme: 'vs-dark', language: 'javascript' };
+  code = 'function x() {\n  console.log("Hello world!");\n}';
+  valid = true;
 }
 ```
-Include editor in html with options and ngModel bindings.(eg: app.component.html)
+
+To edit a specific Monaco model, bind `[model]` to an `NgxEditorModel` (`{ value, language?, uri? }`). If a Monaco model with that `uri` already exists, the editor reuses it and keeps its content; otherwise it creates one. Models created without a `uri` are disposed by the editor when they're replaced or the editor is destroyed. Models with a `uri` are left alone, so they keep their content and undo history across editor instances.
+
+## Signal-based code editor: `ngx-standalone-monaco-editor`
+
+`StandaloneEditorComponent` has a `value` model signal:
+
 ```html
-<ngx-monaco-editor [options]="editorOptions" [(ngModel)]="code"></ngx-monaco-editor>
+<ngx-standalone-monaco-editor [options]="options" [(value)]="code" />
 ```
 
-Include diff-editor in html with options.(eg: app.component.html)
-```html
-<ngx-monaco-diff-editor [options]="options" [originalModel]="originalModel" [modifiedModel]="modifiedModel"></ngx-monaco-diff-editor>
-```
-```typescript
-import { Component } from '@angular/core';
-import { DiffEditorModel } from 'ngx-monaco-editor';
+It's also a Signal Forms control (`FormValueControl<string>`), so `[formField]` binds the value and the disabled, read-only and touched state:
+
+```ts
+import { form, FormField } from '@angular/forms/signals';
+import { StandaloneEditorComponent } from '@rolandp_86/ngx-monaco-editor';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html'
+  imports: [StandaloneEditorComponent, FormField],
+  template: `<ngx-standalone-monaco-editor [options]="options" [formField]="snippetForm.code" />`,
 })
-export class AppComponent {
-  options = {
-    theme: 'vs-dark'
-  };
-  originalModel: DiffEditorModel = {
-    code: 'heLLo world!',
-    language: 'text/plain'
-  };
-
-  modifiedModel: DiffEditorModel = {
-    code: 'hello orlando!',
-    language: 'text/plain'
-  };
+export class SnippetComponent {
+  options = { language: 'html' };
+  snippet = signal({ code: '<p>Hello</p>' });
+  snippetForm = form(this.snippet);
 }
 ```
 
-### Styling
-To match height of container element add height: 100% and wrap in container
-```html
-<div style="height: 500px">
-    <ngx-monaco-editor style="height: 100%" [options]="editorOptions" [(ngModel)]="code"></ngx-monaco-editor>
-</div>
-```
-Add class to editor tag. (eg. class="my-code-editor")
-```html
-<ngx-monaco-editor class="my-code-editor" [options]="editorOptions" [(ngModel)]="code"></ngx-monaco-editor>
-```
-Add styling in css/scss file:
-```scss
-.my-code-editor {
-  .editor-container {
-    height: calc(100vh - 100px);
-  }
-}
-```
-Set automaticLayout option to adjust editor size dynamically. Recommended when using in modal dialog or tabs where editor is not visible initially.
+## Diff editor: `ngx-monaco-diff-editor`
 
-### Events
-Output event (onInit) expose editor instance that can be used for performing custom operations on the editor. 
-```html
-<ngx-monaco-editor [options]="editorOptions" [(ngModel)]="code" (onInit)="onInit($event)"></ngx-monaco-editor>
-```
+```ts
+import { DiffEditorComponent, DiffEditorModel } from '@rolandp_86/ngx-monaco-editor';
 
-```typescript
-export class AppComponent {
-  editorOptions = {theme: 'vs-dark', language: 'javascript'};
-  code: string= 'function x() {\nconsole.log("Hello world!");\n}';
-  onInit(editor) {
-      let line = editor.getPosition();
-      console.log(line);
-    }
-}
-```
-
-## Configurations
-`forRoot()` method of MonacoEditorModule accepts config of type `NgxMonacoEditorConfig`.
-```typescript
-import { NgModule } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { BrowserModule } from '@angular/platform-browser';
-
-import { MonacoEditorModule, NgxMonacoEditorConfig } from 'ngx-monaco-editor';
-import { AppComponent } from './app.component';
-
-const monacoConfig: NgxMonacoEditorConfig = {
-  baseUrl: 'app-name/assets', // configure base path cotaining monaco-editor directory after build default: './assets'
-  defaultOptions: { scrollBeyondLastLine: false }, // pass default options to be used
-  onMonacoLoad: () => { console.log((<any>window).monaco); } // here monaco object will be available as window.monaco use this function to extend monaco editor functionalities.
-};
-
-@NgModule({
-  declarations: [
-    AppComponent
-  ],
-  imports: [
-    BrowserModule,
-    FormsModule,
-    MonacoEditorModule.forRoot(monacoConfig)
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
+@Component({
+  imports: [DiffEditorComponent],
+  template: `<ngx-monaco-diff-editor [options]="options" [originalModel]="original" [modifiedModel]="modified" />`,
 })
-export class AppModule {
+export class DiffComponent {
+  options = { theme: 'vs-dark', language: 'json' };
+  original: DiffEditorModel = { code: '{ "a": 1 }' };
+  modified: DiffEditorModel = { code: '{ "a": 2 }' };
 }
 ```
 
-### Configure JSON Defaults
-`onMonacoLoad` property of `NgxMonacoEditorConfig` can be used to configure JSON default.
-```typescript
-import { NgModule } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { BrowserModule } from '@angular/platform-browser';
+`options.language` is the fallback for models without a `language`. When the models change, the editor updates its text models in place, so pending diff computations aren't cut off.
 
-import { MonacoEditorModule, NgxMonacoEditorConfig } from 'ngx-monaco-editor';
-import { AppComponent } from './app.component';
+## API
 
-export function onMonacoLoad() {
+### All editors
 
-  console.log((window as any).monaco);
+| Member    | Kind   | Description                                                                                                                               |
+| --------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `options` | input  | Monaco options, merged over the configured `defaultOptions`. Changes are applied to the running editor, including `language` and `theme`. |
+| `onInit`  | output | Emits the Monaco editor instance once it's created.                                                                                       |
+| `editor`  | signal | The Monaco editor instance, `undefined` until it's created.                                                                               |
 
-  const uri = monaco.Uri.parse('a://b/foo.json');
-  monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+### Code editors (`ngx-monaco-editor`, `ngx-standalone-monaco-editor`)
+
+| Member                 | Kind   | Description                                                                               |
+| ---------------------- | ------ | ----------------------------------------------------------------------------------------- |
+| `isValidSyntax`        | signal | `false` while the current model has error markers. Warnings, infos and hints don't count. |
+| `syntaxErrors`         | signal | One message per error marker, for example `Error: Unexpected token at line 2, column 3`.  |
+| `markers`              | signal | All markers of the current model, with their severity and position.                       |
+| `isValidSyntaxChange`  | output | Emits when `isValidSyntax` changes.                                                       |
+| `syntaxErrorsChange`   | output | Emits when `syntaxErrors` changes.                                                        |
+| `model`                | input  | `ngx-monaco-editor` only. An `NgxEditorModel` to edit (see above).                        |
+| `value`                | model  | `ngx-standalone-monaco-editor` only. The content.                                         |
+| `disabled`, `readonly` | input  | `ngx-standalone-monaco-editor` only. Make the editor read-only. Bound by `[formField]`.   |
+| `touch`                | output | `ngx-standalone-monaco-editor` only. Emits on blur. Used by `[formField]`.                |
+| `focus()`              | method | `ngx-standalone-monaco-editor` only. Focuses the editor.                                  |
+
+### Diff editor
+
+| Member                           | Kind           | Description                                |
+| -------------------------------- | -------------- | ------------------------------------------ |
+| `originalModel`, `modifiedModel` | required input | `DiffEditorModel` (`{ code, language? }`). |
+
+## Configuration
+
+`provideMonacoEditor(config)` and `MonacoEditorModule.forRoot(config)` accept an `NgxMonacoEditorConfig`:
+
+| Option                 | Description                                                                                                                                                                                                                                   |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `baseUrl`              | Folder that contains `monaco-editor/min/vs`. Default: `./assets`.                                                                                                                                                                             |
+| `defaultOptions`       | Options merged under every editor's `options`.                                                                                                                                                                                                |
+| `onMonacoLoad(monaco)` | Runs once after Monaco has loaded, before the first editor is created. Register languages, themes and providers here.                                                                                                                         |
+| `runOutsideAngular`    | zone.js apps only: creates editors outside the Angular zone, so Monaco's many DOM events don't trigger change detection. Value changes and outputs still re-enter the zone, but callbacks you register on the editor yourself run outside it. |
+
+### Example: JSON schemas
+
+```ts
+import { Monaco, provideMonacoEditor } from '@rolandp_86/ngx-monaco-editor';
+
+function onMonacoLoad(monaco: Monaco) {
+  monaco.json.jsonDefaults.setDiagnosticsOptions({
     validate: true,
-    schemas: [{
-      uri: 'http://myserver/foo-schema.json',
-      fileMatch: [uri.toString()],
-      schema: {
-        type: 'object',
-        properties: {
-          p1: {
-            enum: ['v1', 'v2']
-          },
-          p2: {
-            $ref: 'http://myserver/bar-schema.json'
-          }
-        }
-      }
-    }, {
-      uri: 'http://myserver/bar-schema.json',
-      fileMatch: [uri.toString()],
-      schema: {
-        type: 'object',
-        properties: {
-          q1: {
-            enum: ['x1', 'x2']
-          }
-        }
-      }
-    }]
+    schemas: [
+      {
+        uri: 'http://myserver/foo-schema.json',
+        fileMatch: ['a://b/foo.json'],
+        schema: { type: 'object', properties: { p1: { enum: ['v1', 'v2'] } } },
+      },
+    ],
   });
-
 }
 
-const monacoConfig: NgxMonacoEditorConfig = {
-  baseUrl: 'assets',
-  defaultOptions: { scrollBeyondLastLine: false },
-  onMonacoLoad
-};
+provideMonacoEditor({ onMonacoLoad });
+```
 
-@NgModule({
-  declarations: [
-    AppComponent
-  ],
-  imports: [
-    BrowserModule,
-    FormsModule,
-    MonacoEditorModule.forRoot(monacoConfig)
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
-})
-export class AppModule {
+Then bind an editor to a model with that URI: `[model]="{ value: json, language: 'json', uri: monaco.Uri.parse('a://b/foo.json') }"`. Create the `Uri` after Monaco has loaded, for example in `(onInit)`.
+
+### Preloading
+
+Monaco loads when the first editor is rendered. To load it earlier, for example while the user is still on another page, call `ensureMonacoLoaded()`. It resolves with the global `monaco` and is safe to call repeatedly.
+
+## Styling
+
+The host element is `display: block` with a default height of 200px, and the editor fills the inner `.editor-container`. Size the host to resize the editor:
+
+```css
+ngx-monaco-editor {
+  height: 100%;
 }
 ```
 
-Now pass model config of type `NgxEditorModel` to Editor Component
-```typescript
-@Component({
-  selector: 'app-root',
-  template: `<ngx-monaco-editor [options]="options" [model]="model"></ngx-monaco-editor>`,
-  styles: []
-})
-export class AppComponent {
-  options = {
-    theme: 'vs-dark'
-  };
-  
-  jsonCode = [
-    '{',
-    '    "p1": "v3",',
-    '    "p2": false',
-    '}'
-  ].join('\n');
+The editor re-lays out whenever its container changes size, including editors that start hidden in tabs or dialogs, so the `automaticLayout` option isn't needed.
 
-  model: NgxEditorModel = {
-    value: this.jsonCode,
-    language: 'json',
-    uri: monaco.Uri.parse('a://b/foo.json')
-  };
-}
-```
+## Migrating to 23.0.0
+
+- **`isValidSyntax` and `syntaxErrors` are read-only signals with outputs.** Replace `[(isValidSyntax)]="valid"` with `(isValidSyntaxChange)="valid = $event"`, and the same for `syntaxErrors`.
+- **Only errors make the syntax invalid.** Warnings no longer set `isValidSyntax` to `false`, and `syntaxErrors` only lists errors. Use `markers` for warnings.
+- **Inputs are signals.** `options` of `ngx-standalone-monaco-editor` is an input, not a model: `[(options)]` no longer compiles. The diff editor's `originalModel` and `modifiedModel` are required inputs.
+- **`value` of `ngx-standalone-monaco-editor` is a `string` model.** Don't bind `null` or `undefined`.
+- **Internal members are private.** `_editorContainer`, `_editor`, `_options`, `propagateChange`, `onTouched`, `onDidChangeMarkersListener` and `ngOnDestroy()` are gone. Use the `editor` signal or `(onInit)` for the Monaco instance.
+- **`onMonacoLoad` receives `monaco`**, and `defaultOptions` is typed as Monaco editor options. `NgxEditorModel.uri` is a Monaco `Uri`.
+- **The config provider is optional.** Without `provideMonacoEditor()` or `forRoot()`, the defaults apply.
+- **`@angular/forms` is a peer dependency.**
 
 ## Links
-[Monaco Editor](https://github.com/Microsoft/monaco-editor/)<br/>
-[Monaco Editor Options](https://microsoft.github.io/monaco-editor/api/interfaces/monaco.editor.ieditorconstructionoptions.html)
+
+- [Release notes](https://github.com/rpanitzek/ngx-monaco-editor/blob/master/docs/release-notes.md)
+- [Monaco Editor](https://github.com/microsoft/monaco-editor/)
+- [Monaco Editor options](https://microsoft.github.io/monaco-editor/docs.html#interfaces/editor.IStandaloneEditorConstructionOptions.html)
 
 ## License
 

@@ -1,10 +1,8 @@
-import { NgxMonacoEditorConfig } from '../../../editor/src/public-api';
+import { Monaco, NgxMonacoEditorConfig } from '../../../editor/src/public-api';
 
-declare let monaco: any;
-
-export function onMonacoLoad() {
+export function onMonacoLoad(monaco: Monaco) {
   const uri = monaco.Uri.parse('a://b/foo.json');
-  monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+  monaco.json.jsonDefaults.setDiagnosticsOptions({
     validate: true,
     schemas: [
       {

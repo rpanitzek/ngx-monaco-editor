@@ -1,9 +1,14 @@
+import type { Uri } from 'monaco-editor';
+
 export interface DiffEditorModel {
   code: string;
-  language: string;
+  /** Falls back to `options.language`. */
+  language?: string;
 }
+
 export interface NgxEditorModel {
   value: string;
   language?: string;
-  uri?: any;
+  /** Reuses the Monaco model registered for this URI, if there is one. */
+  uri?: Uri;
 }

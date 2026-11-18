@@ -1,13 +1,12 @@
-import { CommonModule } from '@angular/common';
 import { ModuleWithProviders, NgModule } from '@angular/core';
 
 import { NGX_MONACO_EDITOR_CONFIG, NgxMonacoEditorConfig } from './config';
 import { DiffEditorComponent } from './diff-editor.component';
 import { EditorComponent } from './editor.component';
 
+/** For NgModule apps. Standalone apps import the components directly and use `provideMonacoEditor()`. */
 @NgModule({
-  imports: [CommonModule],
-  declarations: [EditorComponent, DiffEditorComponent],
+  imports: [EditorComponent, DiffEditorComponent],
   exports: [EditorComponent, DiffEditorComponent],
 })
 export class MonacoEditorModule {

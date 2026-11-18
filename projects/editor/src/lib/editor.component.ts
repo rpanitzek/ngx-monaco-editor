@@ -1,33 +1,14 @@
-import { Component, forwardRef, Inject, Input, model as ngModel, ModelSignal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, forwardRef, input, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { fromEvent } from 'rxjs';
 
 import { BaseEditor } from './base-editor';
-import { NGX_MONACO_EDITOR_CONFIG, NgxMonacoEditorConfig } from './config';
 import { NgxEditorModel } from './types';
-import { IDisposable } from 'monaco-editor';
-import type { editor } from 'monaco-editor';
 
-declare const monaco: typeof import('monaco-editor');
-
+/** Code editor for template-driven and reactive forms (`ngModel`, `formControl`). */
 @Component({
-  standalone: false,
   selector: 'ngx-monaco-editor',
   template: '<div class="editor-container" #editorContainer></div>',
-  styles: [
-    `
-      :host {
-        display: block;
-        height: 200px;
-      }
-
-      .editor-container {
-        width: 100%;
-        height: 98%;
-      }
-    `,
-  ],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrl: './editor.css',
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -37,149 +18,57 @@ declare const monaco: typeof import('monaco-editor');
   ],
 })
 export class EditorComponent extends BaseEditor implements ControlValueAccessor {
-  private _value = '';
+  /** Model to edit. Reuses the Monaco model registered for `model.uri`, or creates one. */
+  readonly model = input<NgxEditorModel>();
 
-  propagateChange = (_: any) => {};
-  onTouched = () => {};
+  private value = '';
+  private readonly disabled = signal(false);
+  private onChange: (value: string) => void = () => undefined;
+  private onTouched: () => void = () => undefined;
 
-  isValidSyntax: ModelSignal<boolean> = ngModel(true);
-  syntaxErrors: ModelSignal<string[]> = ngModel<string[]>([]);
-
-  onDidChangeMarkersListener: IDisposable | undefined;
-
-  @Input()
-  set options(options: editor.IStandaloneEditorConstructionOptions) {
-    this._options = Object.assign({}, this.config.defaultOptions, options);
-
-    if (this._editor) {
-      const mergedOptions = Object.assign({}, this.config.defaultOptions, options);
-
-      this._editor.updateOptions(mergedOptions);
-
-      // You can update language/model separately if needed
-      if (options.model && this._editor.getModel() !== options.model) {
-        this._editor.setModel(options.model);
-      }
-
-      this._options = mergedOptions;
+  writeValue(value: string | null | undefined): void {
+    this.value = value ?? '';
+    const codeEditor = this.editor();
+    // A bound model is the source of truth for the content.
+    if (codeEditor && !this.modelSource() && codeEditor.getValue() !== this.value) {
+      codeEditor.setValue(this.value);
     }
   }
 
-  get options(): any {
-    return this._options;
+  registerOnChange(fn: (value: string) => void): void {
+    this.onChange = fn;
   }
 
-  @Input()
-  set model(model: NgxEditorModel) {
-    if (!model) return;
-
-    // If editor exists
-    if (this._editor) {
-      // Get Monaco model by URI
-      let monacoModel = monaco.editor.getModel(model.uri);
-
-      if (!monacoModel) {
-        // Create a new Monaco model if it doesn’t exist
-        monacoModel = monaco.editor.createModel(model.value || '', model.language || 'html', model.uri);
-      }
-
-      // Only set if it's a different Monaco model
-      if (this._editor.getModel()?.uri.toString() !== monacoModel.uri.toString()) {
-        this._editor.setModel(monacoModel);
-      }
-    } else {
-      // Editor not initialized yet
-      this.options = {
-        ...this.options,
-        model: model,
-      };
-    }
-  }
-
-  constructor(@Inject(NGX_MONACO_EDITOR_CONFIG) private editorConfig: NgxMonacoEditorConfig) {
-    super(editorConfig);
-  }
-
-  writeValue(value: any): void {
-    this._value = value || '';
-    // Fix for value change while dispose in process.
-    setTimeout(() => {
-      if (this._editor && !this.options.model) {
-        this._editor.setValue(this._value);
-      }
-    });
-  }
-
-  registerOnChange(fn: any): void {
-    this.propagateChange = fn;
-  }
-
-  registerOnTouched(fn: any): void {
+  registerOnTouched(fn: () => void): void {
     this.onTouched = fn;
   }
 
-  override ngOnDestroy() {
-    if (this.onDidChangeMarkersListener) {
-      this.onDidChangeMarkersListener.dispose();
-    }
-    super.ngOnDestroy();
+  setDisabledState(isDisabled: boolean): void {
+    this.disabled.set(isDisabled);
   }
 
-  protected initMonaco(options: editor.IStandaloneEditorConstructionOptions): void {
-    const hasModel = !!options.model;
+  protected override currentValue(): string {
+    return this.value;
+  }
 
-    if (hasModel && monaco) {
-      const providedModel = options.model;
-      if (providedModel && providedModel.uri) {
-        const model = monaco.editor.getModel(providedModel.uri);
-
-        if (model) {
-          options.model = model;
-          options.model.setValue(this._value);
-        } else {
-          options.model = monaco.editor.createModel(model ?? '');
-        }
-      }
+  protected override onValueChange(value: string): void {
+    // writeValue() comes back here through Monaco's change event; the form already has that value.
+    if (value === this.value) {
+      return;
     }
+    this.value = value;
+    this.onChange(value);
+  }
 
-    if (this._editorContainer) {
-      this._editor = monaco.editor.create(this._editorContainer.nativeElement, options);
-    }
+  protected override onBlur(): void {
+    this.onTouched();
+  }
 
-    if (!hasModel) {
-      this._editor.setValue(this._value);
-    }
+  protected override isReadOnly(): boolean {
+    return this.disabled();
+  }
 
-    this._editor.onDidChangeModelContent((e: any) => {
-      const value = this._editor.getValue();
-      this._value = value;
-      this.propagateChange(value);
-    });
-
-    this.onDidChangeMarkersListener = monaco.editor.onDidChangeMarkers((e: any) => {
-      if (!this._editor || !this._editor.getModel()) {
-        this.isValidSyntax.update(() => false); // or true, depending on your desired fallback behavior
-        this.syntaxErrors.set(['Editor is not initialized.']);
-        return;
-      }
-
-      const markers: any[] = monaco.editor.getModelMarkers({ resource: this._editor.getModel()!.uri });
-      this.isValidSyntax.update(current => markers.length === 0);
-      this.syntaxErrors.set(
-        markers.map(marker => `Error: ${marker.message} at line ${marker.startLineNumber}, column ${marker.startColumn}`)
-      );
-    });
-
-    this._editor.onDidBlurEditorWidget(() => {
-      this.onTouched();
-    });
-
-    // refresh layout on resize event.
-    if (this._windowResizeSubscription) {
-      this._windowResizeSubscription.unsubscribe();
-    }
-    this._windowResizeSubscription = fromEvent(window, 'resize').subscribe(() => this._editor.layout());
-
-    this.onInit.emit(this._editor);
+  protected override boundModel(): NgxEditorModel | undefined {
+    return this.model();
   }
 }
