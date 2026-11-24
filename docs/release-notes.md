@@ -1,5 +1,27 @@
 # Release notes: @rolandp_86/ngx-monaco-editor
 
+## 23.1.0 (2026-11-24)
+
+**Requires:** Angular 22.2+, `@angular/forms` 22.2+, `monaco-editor` ^0.58.0.
+
+Supports Monaco 0.58 and fixes the F1 command palette in zone.js apps. The public API is unchanged.
+
+### Highlights
+
+- **Monaco 0.58:** the peer dependency moves from `^0.57.0` to `^0.58.0`. Upgrade `monaco-editor` together with this version. Monaco 0.57 stays on 23.0.x.
+- **F1 command palette in zone.js apps:** the palette failed with `e.reduce is not a function`. Monaco's prebuilt code returns native promises, and zone.js hides them from `instanceof Promise`, which Monaco uses to tell a promise from a list. The loader now lets native promises pass that check, so zone.js apps need no workaround of their own. Apps that already have one can remove it.
+- **Classic forms:** `ngx-standalone-monaco-editor` binds with `ngModel`, `[formControl]` and `formControlName` as a custom control. From Angular 22.3 on, validator directives such as `required` and `minlength` apply to it as well. The library itself still only needs Angular 22.2.
+
+### Upgrading from 23.0.x
+
+- **Remote images in Markdown:** Monaco 0.58 no longer loads remote images in hovers, suggestion details and parameter hints. `data:` images still work. To allow remote images, pass `markdownImages: { allowedOrigins: ['https://img.shields.io'] }` in `defaultOptions` or `options`, or `allowedOrigins: true` for all origins.
+- **Copying Monaco's files:** Monaco 0.58 no longer ships `vs/language/*/*.worker.js` and `vs/editor/editor.worker.js`, which were not used. The workers load from `vs/assets`. Keep copying all of `node_modules/monaco-editor/min` (the `**/*` glob in the README). The copy shrinks from about 25 MB to 18 MB. If you copy individual worker files, switch to the glob.
+
+### Other changes
+
+- **Library build:** the package is built with `@angular/build:library`, because Angular 22.3 deprecates the ng-packagr builder. The entry point comes from `projects/editor/package.json#exports`. The published package layout is unchanged. It now also declares `main` and `types`, and lists `tslib` as a dependency only if the build needs it.
+- **Fixes from Monaco:** memory leaks in the word highlighter and color picker are fixed, idle CPU use is lower, and `tabFocusMode` overrides are kept per editor. The diff algorithm backend is now bundled in the editor worker.
+
 ## 23.0.1 (2026-11-18)
 
 Packaging fix, no code changes.

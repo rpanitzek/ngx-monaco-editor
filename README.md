@@ -4,7 +4,8 @@ The [Monaco Editor](https://github.com/microsoft/monaco-editor) as Angular compo
 
 | `@rolandp_86/ngx-monaco-editor` | Angular | `monaco-editor` |
 | ------------------------------- | ------- | --------------- |
-| 23.x                            | 22.x    | ^0.57.0         |
+| 23.1+                           | 22.x    | ^0.58.0         |
+| 23.0.x                          | 22.x    | ^0.57.0         |
 | 22.x                            | 22.x    | ^0.57.0         |
 
 Up to 22.x, the package version followed the Angular major version. 23.0.0 breaks that rule because it contains breaking API changes for Angular 22 (see [Migrating to 23.0.0](#migrating-to-2300)).
@@ -21,7 +22,7 @@ Monaco is loaded at runtime from your app's assets, not bundled. Copy its `min` 
 { "glob": "**/*", "input": "node_modules/monaco-editor/min", "output": "assets/monaco-editor/min" }
 ```
 
-Copy only `min`: the full package is about 100 MB, of which only the 25 MB in `min` are loaded.
+Copy only `min`: the full package is about 80 MB, of which only the 18 MB in `min` are loaded.
 
 ## Setup
 
@@ -81,6 +82,8 @@ export class SnippetComponent {
   snippetForm = form(this.snippet);
 }
 ```
+
+It has no `ControlValueAccessor`, so `ngModel`, `[formControl]` and `formControlName` bind to it as a custom control as well. From Angular 22.3 on, validator directives such as `required` and `minlength` apply to it too.
 
 ## Diff editor: `ngx-monaco-diff-editor`
 

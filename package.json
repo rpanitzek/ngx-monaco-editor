@@ -1,6 +1,6 @@
 {
   "name": "@rolandp_86/ngx-monaco-editor",
-  "version": "23.0.1",
+  "version": "23.1.0",
   "description": "Monaco Code Editor For Angular 22",
   "keywords": [
     "angular 22",
@@ -14,7 +14,7 @@
   "license": "MIT",
   "scripts": {
     "ng": "ng",
-    "start": "run-s build-editor serve",
+    "start": "npm run build-editor && npm run serve",
     "serve": "ng serve",
     "build": "ng build --project=editor-tester --base-href=editor-tester --configuration=development",
     "build:prod": "ng build --project=editor-tester --base-href=editor-tester",
@@ -22,11 +22,10 @@
     "lint:fix": "ng lint --fix",
     "eslint": "npx eslint .",
     "eslint:fix": "npx eslint . --fix",
-    "e2e": "ng e2e",
     "build-editor": "ng build editor && npm run copy:package-files",
     "npm-publish": "npm run build-editor && bash npm-publish",
     "copy:package-files": "node -e \"const fs = require('fs'); fs.copyFileSync('README.md', 'dist/editor/README.md'); fs.copyFileSync('license', 'dist/editor/LICENSE');\"",
-    "update:angular": "ncu --filter \"@angular*\" -u"
+    "update:angular": "ng update @angular/core @angular/cli"
   },
   "private": false,
   "repository": {
@@ -42,34 +41,32 @@
     "Roland Panitzek"
   ],
   "dependencies": {
-    "@angular/common": "~22.2.6",
-    "@angular/compiler": "~22.2.6",
-    "@angular/core": "~22.2.6",
-    "@angular/forms": "~22.2.6",
-    "@angular/platform-browser": "~22.2.6",
-    "@angular/router": "~22.2.6",
-    "monaco-editor": "^0.57.0",
+    "@angular/common": "~22.3.0",
+    "@angular/compiler": "~22.3.0",
+    "@angular/core": "~22.3.0",
+    "@angular/forms": "~22.3.0",
+    "@angular/platform-browser": "~22.3.0",
+    "@angular/router": "~22.3.0",
+    "monaco-editor": "^0.58.0",
     "rxjs": "^7.8.2",
     "tslib": "^2.9.1",
     "zone.js": "~0.16.3"
   },
   "devDependencies": {
-    "@angular/build": "^22.2.7",
-    "@angular/cli": "~22.2.7",
-    "@angular/compiler-cli": "~22.2.6",
-    "@angular/language-service": "~22.2.6",
+    "@angular/build": "^22.3.0",
+    "@angular/cli": "~22.3.0",
+    "@angular/compiler-cli": "~22.3.0",
+    "@angular/language-service": "~22.3.0",
     "@eslint/js": "^10.0.1",
     "@types/node": "^24.19.2",
-    "angular-eslint": "^22.7.0",
+    "angular-eslint": "^22.8.0",
     "eslint": "^10.15.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.7",
     "eslint-plugin-unused-imports": "^4.4.1",
     "jsdom": "^30.1.3",
-    "ng-packagr": "^22.3.0",
-    "npm-run-all": "^4.1.5",
     "typescript": "6.0.3",
-    "typescript-eslint": "^8.73.0",
+    "typescript-eslint": "^8.74.0",
     "vitest": "^5.1.1"
   }
 }

@@ -111,16 +111,17 @@
       "prefix": "ngx-monaco",
       "architect": {
         "build": {
-          "builder": "@angular/build:ng-packagr",
+          "builder": "@angular/build:library",
           "options": {
-            "project": "projects/editor/ng-package.json"
+            "tsConfig": "projects/editor/tsconfig.lib.json",
+            "outputPath": "dist/editor"
           },
           "configurations": {
             "production": {
               "tsConfig": "projects/editor/tsconfig.lib.prod.json"
             },
             "development": {
-              "tsConfig": "projects/editor/tsconfig.lib.json"
+              "compilationMode": "full"
             }
           },
           "defaultConfiguration": "production"
@@ -130,6 +131,7 @@
           "options": {
             "buildTarget": "::development",
             "tsConfig": "projects/editor/tsconfig.spec.json",
+            "polyfills": ["zone.js"],
             "runner": "vitest",
             "isolate": true
           }

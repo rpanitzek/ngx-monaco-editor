@@ -10,7 +10,13 @@ describe('ensureMonacoLoaded', () => {
 
   // Runs first: the loader caches its promise for the whole module once it succeeds.
   it('rejects when loader.js fails to load, and retries on the next call', async () => {
+    // Monaco's F1 palette needs native promises to pass `instanceof Promise`, which zone.js breaks.
+    const nativePromise = (globalThis as any).__zone_symbol__Promise.resolve();
+    expect(nativePromise instanceof Promise).toBe(false);
+
     const first = ensureMonacoLoaded({ baseUrl: 'cdn' });
+    expect(nativePromise instanceof Promise).toBe(true);
+
     const firstScript = document.head.querySelector<HTMLScriptElement>('script');
     expect(firstScript?.getAttribute('src')).toBe('cdn/monaco-editor/min/vs/loader.js');
 

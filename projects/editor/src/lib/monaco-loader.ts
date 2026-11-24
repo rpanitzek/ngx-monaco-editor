@@ -1,4 +1,5 @@
 import type { Monaco, NgxMonacoEditorConfig } from './config';
+import { recognizeNativePromises } from './zone-promise';
 
 let loadPromise: Promise<Monaco> | null = null;
 
@@ -16,6 +17,8 @@ export function ensureMonacoLoaded(config: NgxMonacoEditorConfig = {}): Promise<
 }
 
 function load(config: NgxMonacoEditorConfig): Promise<Monaco> {
+  recognizeNativePromises();
+
   return new Promise<Monaco>((resolve, reject) => {
     const win = window as any;
     const vsPath = `${config.baseUrl || './assets'}/monaco-editor/min/vs`;
